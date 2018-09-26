@@ -1,2 +1,2 @@
 # UC_DRLND
-UDacity's Deep Reinforcement Learning Nano Degree
+Udacity's Deep Reinforcement Learning Nano Degree
