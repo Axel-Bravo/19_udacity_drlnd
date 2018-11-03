@@ -74,7 +74,7 @@ class Agent:
         elif self.td is 'sarsa_max':
             self.Q[state][action] += self.alpha *\
                                      (reward + self.gamma *
-                                      self.Q[next_state].argmax() - self.Q[state][action])
+                                      self.Q[next_state][next_action_prob.argmax()] - self.Q[state][action])
         else:  # Expected Sarsa
             self.Q[state][action] += self.alpha *\
                                      (reward + self.gamma *
