@@ -23,7 +23,7 @@ V_opt[3][0] = -13
 
 plot_values(V_opt)
 
-#%% Part 1: TD Control Sarsa
+#%% Part 1 - Temporal Difference: Sarsa
 
 
 def e_greedy_action(s_action_values: np.ndarray, epsilon: float) -> int:
@@ -90,7 +90,7 @@ def sarsa(env, num_episodes, alpha, gamma=1.0):
 
             if done:
                 # Update Q table
-                Q[state][action] += alpha * (reward + gamma * Q[next_state][next_action] - Q[state][action])
+                Q[state][action] += alpha*(reward + gamma*Q[next_state][next_action] - Q[state][action])
                 # append score
                 tmp_scores.append(score)
                 break
@@ -108,7 +108,7 @@ def sarsa(env, num_episodes, alpha, gamma=1.0):
 
     return Q
 
-#%% Sarsa Testing
+#%% Part 1 - Temporal Difference: Sarsa - Testing
 # obtain the estimated optimal policy and corresponding action-value function
 Q_sarsa = sarsa(env, 5000, .02)
 
@@ -123,7 +123,22 @@ V_sarsa = ([np.max(Q_sarsa[key]) if key in Q_sarsa else 0 for key in np.arange(4
 plot_values(V_sarsa)
 
 
-#%% Part 2: TD Control Q-learning
+#%% Part 2 - Temporal Difference: Sarsa Max / Q-learning
+
+def e_greedy_prob(s_action_values: np.ndarray, epsilon: float) -> np.ndarray:
+    """
+    Given an Q (state-action table) returns the probabilities to select each action based on "e-greedy" policy
+    :param s_action_values: Q[state] is the estimated action value corresponding to a state
+    :param state: Actual state where we are.
+    :param epsilon:
+    :return: action probabilities for a given state
+    """
+    # Select maximum V(S,A)
+    max_action_val_pos = s_action_values.argmax()
+    # Create policy pi(S,A)
+    policy_s = np.ones(env.nA) * epsilon / env.nA
+    policy_s[max_action_val_pos] += (1 - epsilon)
+    return policy_s
 
 
 def q_learning(env, num_episodes, alpha, gamma=1.0):
@@ -153,8 +168,10 @@ def q_learning(env, num_episodes, alpha, gamma=1.0):
         state = env.reset()
         # Update epsilon
         epsilon = 1 / i_episode
-        # Choose action
-        action = e_greedy_action(s_action_values=Q[state], epsilon=epsilon)
+
+        action_prob = e_greedy_prob(s_action_values=Q[state], epsilon=epsilon)
+        # Select action based on policy pi(S,A)
+        action = np.random.choice(np.arange(env.nA), p=action_prob)
 
         for t_step in np.arange(300):
             next_state, reward, done, info = env.step(action)
@@ -162,16 +179,22 @@ def q_learning(env, num_episodes, alpha, gamma=1.0):
             score += reward
 
             if not done:
-                next_action = e_greedy_action(s_action_values=Q[next_state], epsilon=epsilon)
+                next_action_prob = e_greedy_prob(s_action_values=Q[next_state], epsilon=epsilon)
+                # Select action based on policy pi(S,A)
+                next_action = np.random.choice(np.arange(env.nA), p=next_action_prob)
                 # Update Q table
-                Q[state][action] += alpha*(reward + gamma*Q[next_state][next_action] - Q[state][action])
+                Q[state][action] += alpha *\
+                                    (reward + gamma *
+                                     Q[next_state][next_action_prob.argmax()] - Q[state][action])
                 # Update values
                 state = next_state
                 action = next_action
 
             if done:
                 # Update Q table
-                Q[state][action] += alpha * (reward + gamma * Q[next_state].argmax() - Q[state][action])
+                Q[state][action] += alpha *\
+                                    (reward + gamma *
+                                     Q[next_state][next_action_prob.argmax()] - Q[state][action])
                 # append score
                 tmp_scores.append(score)
                 break
@@ -189,7 +212,7 @@ def q_learning(env, num_episodes, alpha, gamma=1.0):
 
     return Q
 
-#%% Testing Q-Learning
+#%% Part 2 - Temporal Difference: Sarsa Max / Q-learning - Testing
 # obtain the estimated optimal policy and corresponding action-value function
 Q_sarsamax = q_learning(env, 5000, .01)
 
@@ -203,23 +226,7 @@ print(policy_sarsamax)
 plot_values([np.max(Q_sarsamax[key]) if key in Q_sarsamax else 0 for key in np.arange(48)])
 
 
-#%% Part 3: TD Control Expected Sarsa
-
-
-def e_greedy_prob(s_action_values: np.ndarray, epsilon: float) -> np.ndarray:
-    """
-    Given an Q (state-action table) returns the probabilities to select each action based on "e-greedy" policy
-    :param s_action_values: Q[state] is the estimated action value corresponding to a state
-    :param state: Actual state where we are.
-    :param epsilon:
-    :return: action probabilities for a given state
-    """
-    # Select maximum V(S,A)
-    max_action_val_pos = s_action_values.argmax()
-    # Create policy pi(S,A)
-    policy_s = np.ones(env.nA) * epsilon / env.nA
-    policy_s[max_action_val_pos] += (1 - epsilon)
-    return policy_s
+#%% Part 3 - Temporal Difference: Expected Sarsa
 
 
 def expected_sarsa(env, num_episodes, alpha, gamma=1.0):
@@ -249,8 +256,10 @@ def expected_sarsa(env, num_episodes, alpha, gamma=1.0):
         state = env.reset()
         # Update epsilon
         epsilon = 1 / i_episode
-        # Choose action
-        action = e_greedy_action(s_action_values=Q[state], epsilon=epsilon)
+
+        action_prob = e_greedy_prob(s_action_values=Q[state], epsilon=epsilon)
+        # Select action based on policy pi(S,A)
+        action = np.random.choice(np.arange(env.nA), p=action_prob)
 
         for t_step in np.arange(300):
             next_state, reward, done, info = env.step(action)
@@ -270,7 +279,7 @@ def expected_sarsa(env, num_episodes, alpha, gamma=1.0):
 
             if done:
                 # Update Q table
-                Q[state][action] += alpha * (reward + gamma * Q[next_state].argmax() - Q[state][action])
+                Q[state][action] += alpha*(reward + gamma*sum(Q[next_state]*next_action_prob) - Q[state][action])
                 # append score
                 tmp_scores.append(score)
                 break
@@ -289,7 +298,7 @@ def expected_sarsa(env, num_episodes, alpha, gamma=1.0):
     return Q
 
 
-#%% Testing Expected Sarsa
+#%% Part 3 - Temporal Difference: Expected Sarsa - Testing
 # obtain the estimated optimal policy and corresponding action-value function
 Q_expsarsa = expected_sarsa(env, 10000, 1)
 
