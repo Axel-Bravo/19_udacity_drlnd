@@ -32,35 +32,22 @@ def interact(env, agent, num_episodes=20000, window=100):
         samp_reward = 0
         # Update epsilon
         epsilon = 1 / i_episode
-        # Choose action
-        action_probab = agent.action_prob(state, epsilon)
-        action = agent.action(action_prob=action_probab)
-
-        for t_step in np.arange(agent.num_steps):
+        while True:
+            # agent selects an action
+            action = agent.select_action(state, epsilon)
             # agent performs the selected action
             next_state, reward, done, _ = env.step(action)
+            # agent performs internal updates based on sampled experience
+            agent.step(state, action, reward, next_state, done)
             # update the sampled reward
             samp_reward += reward
-
-            if not done:
-                next_action_prob = agent.action_prob(next_state, epsilon)
-                next_action = agent.action(action_prob=next_action_prob)
-
-                # agent performs internal updates based on sampled experience
-                agent.step(state, action, reward, next_state, next_action, next_action_prob)
-
-                # update the state (s <- s') and action (a <- a') to next time step
-                state = next_state
-                action = next_action
+            # update the state (s <- s') to next time step
+            state = next_state
             if done:
-                # agent performs internal updates based on sampled experience
-                agent.step(state, action, reward, next_state, next_action, next_action_prob)
-
                 # save final sampled reward
                 samp_rewards.append(samp_reward)
                 break
-
-        if i_episode >= 100:
+        if (i_episode >= 100):
             # get average reward from last 100 episodes
             avg_reward = np.mean(samp_rewards)
             # append to deque
@@ -68,7 +55,6 @@ def interact(env, agent, num_episodes=20000, window=100):
             # update best average reward
             if avg_reward > best_avg_reward:
                 best_avg_reward = avg_reward
-
         # monitor progress
         print("\rEpisode {}/{} || Best average reward {}".format(i_episode, num_episodes, best_avg_reward), end="")
         sys.stdout.flush()
@@ -77,5 +63,4 @@ def interact(env, agent, num_episodes=20000, window=100):
             print('\nEnvironment solved in {} episodes.'.format(i_episode), end="")
             break
         if i_episode == num_episodes: print('\n')
-
     return avg_rewards, best_avg_reward
