@@ -1,4 +1,3 @@
-"""
 #%% Import and function declaration
 from unityagents import UnityEnvironment
 import numpy as np
@@ -6,9 +5,8 @@ import numpy as np
 env = UnityEnvironment(file_name="Banana.app")
 brain_name = env.brain_names[0]
 brain = env.brains[brain_name]
-"""
 
-
+'''
 #%% 1| Agent Test Load
 """
 Initial agent load for testing purposes, no learning involved.
@@ -38,11 +36,12 @@ while True:
 print("Score: {}".format(score))
 
 env.close()
+'''
 
 #%% 2| Agent DQN
 import torch
 import matplotlib.pyplot as plt
-from dqn_agent import Agent
+from _001_dqn_agent import Agent
 from collections import deque
 
 
