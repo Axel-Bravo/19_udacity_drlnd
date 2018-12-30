@@ -34,6 +34,8 @@ def dqn(n_episodes=2000, eps_start=1.0, eps_end=0.01, eps_decay=0.995):
         state = env_info.vector_observations[0]
         score = 0
 
+        BE = 0.01  # importance sampling weight factor
+
         while True:
             # Agent decision and interaction
             action = agent.act(state)
@@ -45,10 +47,10 @@ def dqn(n_episodes=2000, eps_start=1.0, eps_end=0.01, eps_decay=0.995):
             done = env_info.local_done[0]
 
             # Update values
-            agent.step(state, action, reward, next_state, done)
+            agent.step(state, action, reward, next_state, done, BE)
             state = next_state
             score += reward
-
+            BE = min(BE * 1.5, 1)
 
             if done:
                 break

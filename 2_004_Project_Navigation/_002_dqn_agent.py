@@ -14,8 +14,8 @@ GAMMA = 0.99            # discount factor
 TAU = 1e-3              # for soft update of target parameters
 LR = 5e-4               # learning rate 
 UPDATE_EVERY = 4        # how often to update the network
-A = 0.5                 # experience replay sampling probability (0:random -> 1:strict probab)
-BE = 2                  # importance sampling weight factor
+A = 0.66                 # experience replay sampling probability (0: Random -> 1: Strict probability)
+
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -45,7 +45,7 @@ class Agent():
         # Initialize time step (for updating every UPDATE_EVERY steps)
         self.t_step = 0
     
-    def step(self, state, action, reward, next_state, done):
+    def step(self, state, action, reward, next_state, done, BE):
         # Save experience in replay memory
         self.memory.add(state, action, reward, next_state, done)
         
@@ -55,7 +55,7 @@ class Agent():
             # If enough samples are available in memory, get random subset and learn
             if len(self.memory) > BATCH_SIZE:
                 experiences = self.memory.sample()
-                self.learn(experiences, GAMMA)
+                self.learn(experiences, GAMMA, BE)
 
     def act(self, state, eps=0.):
         """Returns actions for given state as per current policy.
@@ -77,7 +77,7 @@ class Agent():
         else:
             return random.choice(np.arange(self.action_size))
 
-    def learn(self, experiences, gamma):
+    def learn(self, experiences, gamma, BE):
         """Update value parameters using given batch of experience tuples.
 
         Params
@@ -96,17 +96,19 @@ class Agent():
         # Get expected Q values from local model
         Q_expected = self.qnetwork_local(states).gather(1, actions)
 
+        # TODO: modificar esto de por aqui tambine 
         # Compute priority = abs(TD error) + epsilon
         priority = abs(Q_targets - Q_expected) + 0.01
 
         # Update transition priority
-        self.memory.update(priority, positions)
+        self.memory.update(priority.detach().numpy(), positions)
 
         # Importance sampling weight
         imp_sample_wht = pow((1/BATCH_SIZE)*(1/priority), BE)
 
+        #TODO: adapt loss calculation
         # Compute loss
-        loss = F.mse_loss(Q_expected*imp_sample_wht, Q_targets*imp_sample_wht)
+        loss = F.mse_loss(Q_expected*imp_sample_wht, Q_targets)
         # Minimize the loss
         self.optimizer.zero_grad()
         loss.backward()
@@ -155,9 +157,10 @@ class ReplayBuffer:
         try:
             initial_priority = max([e.priority for e in self.memory if e is not None])
         except ValueError:
-            initial_priority = 1  # First initial case we allocate priority of 0.1
+            initial_priority = 0.01  # First initial case we allocate priority of 0.1
 
-        e = self.experience(state, action, reward, next_state, done, initial_priority, self.position_counter + 1)
+        e = self.experience(state, action, reward, next_state, done, initial_priority, self.position_counter)
+        self.position_counter += 1
         self.memory.append(e)
 
     def update(self, priorities, positions):
@@ -166,11 +169,11 @@ class ReplayBuffer:
         deque_pos = positions - init_deque_pos
 
         for position in deque_pos:
-            pos_value = position.item()
+            pos_value = int(position.item())
             if pos_value > 0:
                 try:
-                    state, action, reward, next_state, done, _, position = self.memory[pos_value]
-                    priority = priorities.gather(1, position)
+                    state, action, reward, next_state, done, _, _ = self.memory[pos_value]
+                    priority = priorities[pos_value]
                     self.memory[pos_value] = self.experience(state, action, reward, next_state, done, priority,
                                                              position)
                 except IndexError:
@@ -178,11 +181,12 @@ class ReplayBuffer:
 
     def sample(self):
         """Priority based sampling a batch of experiences from memory."""
-        sum_priority = sum([e.priority for e in self.memory if e is not None])
-        abs_priority = [pow(e.priority, A) / pow(sum_priority, A) for e in self.memory if e is not None]
-        abs_priority = [e / sum(abs_priority) for e in abs_priority if e is not None]
+        sum_priority = pow(sum([e.priority for e in self.memory]), A)
+        abs_priority = np.array([pow(e.priority, A) / sum_priority for e in self.memory])
+        abs_priority = abs_priority/abs_priority.sum()
 
-        experiences_index = np.random.choice(len(self.memory), size=self.batch_size, replace=False, p=abs_priority)
+        experiences_index = np.random.choice(len(self.memory), size=self.batch_size, replace=False,
+                                             p=abs_priority.reshape(-1))
         experiences = [self.memory[element] for element in experiences_index]
 
         states = torch.from_numpy(np.vstack([e.state for e in experiences if e is not None])).float().to(device)
