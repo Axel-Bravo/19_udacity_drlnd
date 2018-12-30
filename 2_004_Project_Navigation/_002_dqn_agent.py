@@ -154,7 +154,7 @@ class ReplayBuffer:
         """Add a new experience to memory."""
         try:
             initial_priority = max([e.priority for e in self.memory if e is not None])
-        except TypeError:
+        except ValueError:
             initial_priority = 1  # First initial case we allocate priority of 0.1
 
         e = self.experience(state, action, reward, next_state, done, initial_priority, self.position_counter + 1)
@@ -179,17 +179,23 @@ class ReplayBuffer:
     def sample(self):
         """Priority based sampling a batch of experiences from memory."""
         sum_priority = sum([e.priority for e in self.memory if e is not None])
-        abs_priority = [pow(e.priority, A)/pow(sum_priority, A) for e in self.memory if e is not None]
+        abs_priority = [pow(e.priority, A) / pow(sum_priority, A) for e in self.memory if e is not None]
+        abs_priority = [e / sum(abs_priority) for e in abs_priority if e is not None]
 
-        experiences = np.random.choice(self.memory, size=self.batch_size, replace=False, p=abs_priority)
+        experiences_index = np.random.choice(len(self.memory), size=self.batch_size, replace=False, p=abs_priority)
+        experiences = [self.memory[element] for element in experiences_index]
 
         states = torch.from_numpy(np.vstack([e.state for e in experiences if e is not None])).float().to(device)
         actions = torch.from_numpy(np.vstack([e.action for e in experiences if e is not None])).long().to(device)
         rewards = torch.from_numpy(np.vstack([e.reward for e in experiences if e is not None])).float().to(device)
         next_states = torch.from_numpy(np.vstack([e.next_state for e in experiences if e is not None])).float().to(device)
         dones = torch.from_numpy(np.vstack([e.done for e in experiences if e is not None]).astype(np.uint8)).float().to(device)
-  
-        return (states, actions, rewards, next_states, dones)
+        priority = torch.from_numpy(np.vstack([e.priority for e in experiences if e is not None]).astype(np.uint8))\
+            .float().to(device)
+        position = torch.from_numpy(np.vstack([e.position for e in experiences if e is not None]).astype(np.uint8))\
+            .float().to(device)
+
+        return states, actions, rewards, next_states, dones, priority, position
 
     def __len__(self):
         """Return the current size of internal memory."""
