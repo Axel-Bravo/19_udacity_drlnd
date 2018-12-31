@@ -12,8 +12,9 @@ import matplotlib.pyplot as plt
 from _002_dqn_agent import Agent
 from collections import deque
 
+agent = Agent(state_size=37, action_size=4, seed=0)
 
-def dqn(n_episodes=2000, eps_start=1.0, eps_end=0.01, eps_decay=0.995):
+def dqn(n_episodes=2000, eps_start=1.0, eps_end=0.01, eps_decay=0.995, train=True):
     """Deep Q-Learning.
 
     Params
@@ -23,8 +24,6 @@ def dqn(n_episodes=2000, eps_start=1.0, eps_end=0.01, eps_decay=0.995):
         eps_end (float): minimum value of epsilon
         eps_decay (float): multiplicative factor (per episode) for decreasing epsilon
     """
-    agent = Agent(state_size=37, action_size=4, seed=0)
-
     scores = []  # list containing scores from each episode
     scores_window = deque(maxlen=100)  # last 100 scores
     eps = eps_start  # initialize epsilon
@@ -34,8 +33,6 @@ def dqn(n_episodes=2000, eps_start=1.0, eps_end=0.01, eps_decay=0.995):
         env_info = env.reset(train_mode=True)[brain_name]
         state = env_info.vector_observations[0]
         score = 0
-
-
 
         while True:
             # Agent decision and interaction
@@ -48,10 +45,10 @@ def dqn(n_episodes=2000, eps_start=1.0, eps_end=0.01, eps_decay=0.995):
             done = env_info.local_done[0]
 
             # Update values
-            agent.step(state, action, reward, next_state, done, BE)
+            if train:
+                agent.step(state, action, reward, next_state, done, BE)
             state = next_state
             score += reward
-
 
             if done:
                 break

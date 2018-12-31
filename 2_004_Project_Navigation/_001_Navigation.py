@@ -44,8 +44,9 @@ import matplotlib.pyplot as plt
 from _001_dqn_agent import Agent
 from collections import deque
 
+agent = Agent(state_size=37, action_size=4, seed=0)
 
-def dqn(n_episodes=2000, eps_start=1.0, eps_end=0.01, eps_decay=0.995):
+def dqn(n_episodes=2000, eps_start=1.0, eps_end=0.01, eps_decay=0.995, train=True):
     """Deep Q-Learning.
 
     Params
@@ -55,8 +56,6 @@ def dqn(n_episodes=2000, eps_start=1.0, eps_end=0.01, eps_decay=0.995):
         eps_end (float): minimum value of epsilon
         eps_decay (float): multiplicative factor (per episode) for decreasing epsilon
     """
-    agent = Agent(state_size=37, action_size=4, seed=0)
-
     scores = []  # list containing scores from each episode
     scores_window = deque(maxlen=100)  # last 100 scores
     eps = eps_start  # initialize epsilon
@@ -77,10 +76,10 @@ def dqn(n_episodes=2000, eps_start=1.0, eps_end=0.01, eps_decay=0.995):
             done = env_info.local_done[0]
 
             # Update values
-            agent.step(state, action, reward, next_state, done)
+            if train:
+                agent.step(state, action, reward, next_state, done)
             state = next_state
             score += reward
-
 
             if done:
                 break
@@ -92,6 +91,7 @@ def dqn(n_episodes=2000, eps_start=1.0, eps_end=0.01, eps_decay=0.995):
         print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_window)), end="")
         if i_episode % 100 == 0:
             print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_window)))
+            torch.save(model.state_dict(), 'checkpoint_dqn.pth') # Save model
 
     return scores
 

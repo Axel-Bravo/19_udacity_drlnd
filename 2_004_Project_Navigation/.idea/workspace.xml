@@ -2,11 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2f97d062-84fa-4ada-8b9b-bda4d63cb454" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/Navigation.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dqn_agent.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2_002_Deep_Q_Network/Exercice/Deep_Q_Network - Original.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/../2_002_Deep_Q_Network/Exercice/Deep_Q_Network - Original.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../2_002_Deep_Q_Network/Solution/Deep_Q_Network_Solution.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/../2_002_Deep_Q_Network/Solution/Deep_Q_Network_Solution.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -15,31 +11,22 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/2_004_Project_Navigation$Navigation.coverage" NAME="Navigation Coverage Results" MODIFIED="1545992140183" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/2_004_Project_Navigation$Navigation.coverage" NAME="Navigation Coverage Results" MODIFIED="1546091203738" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/2_004_Project_Navigation$_002_dqn_agent.coverage" NAME="_002_dqn_agent Coverage Results" MODIFIED="1546091253444" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/2_004_Project_Navigation$_001_dqn_agent.coverage" NAME="_001_dqn_agent Coverage Results" MODIFIED="1546090123362" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/2_004_Project_Navigation$_002_Navigation.coverage" NAME="_002_Navigation Coverage Results" MODIFIED="1546195094809" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.5">
+    <splitter split-orientation="horizontal" split-proportion="0.5337705">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/dqn_agent.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="540">
-                  <caret line="65" column="38" selection-start-line="65" selection-start-column="33" selection-end-line="65" selection-end-column="38" />
-                  <folding>
-                    <element signature="e#679#1480#0" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
           <file pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/model.py">
+            <entry file="file://$PROJECT_DIR$/_002_dqn_agent.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="420">
-                  <caret line="28" lean-forward="true" selection-start-line="28" selection-end-line="28" />
+                <state relative-caret-position="1440">
+                  <caret line="96" column="67" selection-start-line="96" selection-start-column="67" selection-end-line="96" selection-end-column="67" />
                   <folding>
-                    <element signature="e#0#12#0" expanded="true" />
+                    <element signature="e#0#18#0" expanded="true" />
                   </folding>
                 </state>
               </provider>
@@ -48,12 +35,12 @@
         </leaf>
       </split-first>
       <split-second>
-        <leaf>
+        <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/Navigation.py">
+            <entry file="file://$PROJECT_DIR$/_002_Navigation.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="120">
-                  <caret line="8" column="22" lean-forward="true" selection-start-line="8" selection-start-column="22" selection-end-line="8" selection-end-column="22" />
+                <state relative-caret-position="-603">
+                  <caret line="8" selection-start-line="8" selection-end-line="8" />
                   <folding>
                     <element signature="e#36#76#0" expanded="true" />
                   </folding>
@@ -75,23 +62,41 @@
   <component name="FindInProjectRecents">
     <findStrings>
       <find>act</find>
+      <find>experience</find>
+      <find>state</find>
+      <find>LR</find>
+      <find>sample</find>
+      <find>BE</find>
+      <find>update</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
+    <option name="PREVIOUS_COMMIT_AUTHORS">
+      <list>
+        <option value="Axel-Bravo &lt;axel.bravo.mutllo@protonmail.com&gt;" />
+      </list>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/dqn_agent.py" />
+        <option value="$PROJECT_DIR$/model.py" />
+        <option value="$PROJECT_DIR$/dqn_agent_exp_replay.py" />
         <option value="$PROJECT_DIR$/Navigation.py" />
+        <option value="$PROJECT_DIR$/001_Navigation.py" />
+        <option value="$PROJECT_DIR$/_001_Navigation.py" />
+        <option value="$PROJECT_DIR$/_001_dqn_agent.py" />
+        <option value="$PROJECT_DIR$/_002_Navigation.py" />
+        <option value="$PROJECT_DIR$/_002_dqn_agent.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="y" value="24" />
-    <option name="width" value="1826" />
-    <option name="height" value="1057" />
+    <option name="y" value="23" />
+    <option name="width" value="1915" />
+    <option name="height" value="1040" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -99,6 +104,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -110,13 +116,17 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="editor.preferences.fonts.default" />
+    <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Background" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -130,7 +140,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python._002_Navigation">
     <configuration name="Navigation" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="2_004_Project_Navigation" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -144,7 +154,73 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Navigation.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/_001_Navigation.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="true" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="_001_dqn_agent" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="2_004_Project_Navigation" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/_001_dqn_agent.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="true" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="_002_Navigation" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="2_004_Project_Navigation" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/_002_Navigation.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="true" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="_002_dqn_agent" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="2_004_Project_Navigation" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/_002_dqn_agent.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="true" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -177,7 +253,10 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python._002_Navigation" />
+        <item itemvalue="Python._002_dqn_agent" />
         <item itemvalue="Python.Navigation" />
+        <item itemvalue="Python._001_dqn_agent" />
       </list>
     </recent_temporary>
   </component>
@@ -193,22 +272,73 @@
       <updated>1545991649280</updated>
       <workItem from="1545991656191" duration="372000" />
       <workItem from="1545992043004" duration="3981000" />
+      <workItem from="1546001707374" duration="4894000" />
+      <workItem from="1546077623050" duration="4771000" />
+      <workItem from="1546097747373" duration="10134000" />
+      <workItem from="1546167118755" duration="10376000" />
+      <workItem from="1546178161909" duration="4933000" />
+      <workItem from="1546193375893" duration="1137000" />
+      <workItem from="1546195033655" duration="4873000" />
+      <workItem from="1546254579042" duration="2344000" />
     </task>
+    <task id="LOCAL-00001" summary="Style: Initial DQN algorithm rewording&#10;&#10;In order to be able to do easier &quot;further&quot; algorithm implementation, a &#10;rewording of files has been implemented.">
+      <created>1546089795242</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1546089795242</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Style: Initial DQN algorithm rewording&#10;&#10;In order to be able to do easier &quot;further&quot; algorithm implementation, a &#10;rewording of files has been implemented.">
+      <created>1546111724693</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1546111724693</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Feat: Prioritized Experience Implemented&#10;&#10;Prioritized Experience Algorithm Variance implemented. &#10;NOT TESTED, now we initialized debugging">
+      <created>1546111801356</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1546111801356</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Feat: Prioritized Experience Implemented&#10;&#10;Debugged, now the code works though the algorithm is unable to learn,&#10;we will try to optimize &quot;A&quot; and &quot;BE&quot; hyperparameters, and if not to&#10;follow up the full code history in order to find &quot;bugs&quot;.">
+      <created>1546170587522</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1546170587523</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Fix: Prioritized Experience Replay&#10;&#10;Debugged, an error related to the priority re-writing of values once&#10; there was an initial experience.">
+      <created>1546195860976</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1546195860976</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Fix: Prioritized Experience Replay&#10;&#10;Debugged, an error related to the loss calculation">
+      <created>1546255802593</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1546255802593</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="4353000" />
+    <option name="totallyTimeSpent" value="47815000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="24" width="1826" height="1057" extended-state="0" />
+    <frame x="0" y="23" width="1915" height="1040" extended-state="0" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.24943946" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.12706888" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
       <window_info anchor="bottom" id="Run" order="2" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4029536" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -217,52 +347,239 @@
       <window_info anchor="bottom" id="Database Changes" order="9" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
       <window_info anchor="bottom" id="Terminal" order="11" weight="0.32905984" />
-      <window_info anchor="bottom" id="Python Console" order="12" visible="true" weight="0.24145077" />
+      <window_info active="true" anchor="bottom" id="Python Console" order="12" visible="true" weight="0.33755276" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info anchor="right" id="SciView" order="3" sideWeight="0.4986339" visible="true" weight="0.25952914" />
-      <window_info anchor="right" x="0" y="0" width="349" height="828" id="Documentation" order="4" sideWeight="0.50136614" side_tool="true" visible="true" weight="0.25952914" />
+      <window_info anchor="right" id="SciView" order="3" sideWeight="0.48566878" visible="true" weight="0.18579818" />
+      <window_info anchor="right" x="0" y="0" width="349" height="828" id="Documentation" order="4" sideWeight="0.5143312" side_tool="true" visible="true" weight="0.18579818" />
       <window_info anchor="right" id="Database" order="5" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
   </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Style: Initial DQN algorithm rewording&#10;&#10;In order to be able to do easier &quot;further&quot; algorithm implementation, a &#10;rewording of files has been implemented." />
+    <MESSAGE value="Feat: Prioritized Experience Implemented&#10;&#10;Prioritized Experience Algorithm Variance implemented. &#10;NOT TESTED, now we initialized debugging" />
+    <MESSAGE value="Feat: Prioritized Experience Implemented&#10;&#10;Debugged, now the code works though the algorithm is unable to learn,&#10;we will try to optimize &quot;A&quot; and &quot;BE&quot; hyperparameters, and if not to&#10;follow up the full code history in order to find &quot;bugs&quot;." />
+    <MESSAGE value="Fix: Prioritized Experience Replay&#10;&#10;Debugged, an error related to the priority re-writing of values once&#10; there was an intial experience." />
+    <MESSAGE value="Fix: Prioritized Experience Replay&#10;&#10;Debugged, an error related to the priority re-writing of values once&#10; there was an initial experience." />
+    <MESSAGE value="Fix: Prioritized Experience Replay&#10;&#10;Debugged, an error related to the loss calculation" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fix: Prioritized Experience Replay&#10;&#10;Debugged, an error related to the loss calculation" />
+  </component>
   <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/002_dqn_agent_PER.py</url>
+          <line>96</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/002_dqn_agent_PER.py</url>
+          <line>88</line>
+          <option name="timeStamp" value="3" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/002_dqn_agent_PER.py</url>
+          <line>85</line>
+          <option name="timeStamp" value="4" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/_001_dqn_agent.py</url>
+          <line>85</line>
+          <option name="timeStamp" value="5" />
+        </line-breakpoint>
+      </breakpoints>
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
+    </breakpoint-manager>
     <watches-manager>
       <configuration name="PythonConfigurationType">
         <watch expression="state" />
       </configuration>
     </watches-manager>
   </component>
+  <component name="debuggerHistoryManager">
+    <expressions id="evaluateCodeFragment">
+      <expression>
+        <expression-string>self.memory[1].priority = 100</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>CODE_FRAGMENT</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>self.memory[1].priority</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>CODE_FRAGMENT</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>self.memory[1]</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>CODE_FRAGMENT</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>priority[0]</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>CODE_FRAGMENT</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>priority[0].item()</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>CODE_FRAGMENT</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>priority</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>CODE_FRAGMENT</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>initial_priority = max([e.priority for e in self.memory if e is not None])</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>CODE_FRAGMENT</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>1/100</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>CODE_FRAGMENT</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>self.memory</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>CODE_FRAGMENT</evaluation-mode>
+      </expression>
+    </expressions>
+    <expressions id="evaluateExpression">
+      <expression>
+        <expression-string>abs_priority.reshape(-1)</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>abs_priority</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>np.random.choice(len(self.memory), size=self.batch_size, replace=False, p=abs_priority)</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>abs_priority.sum()</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>priority.detach().numpy()</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>abs_priority = abs_priority.detach.numpy()</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>abs_priority = abs_priority/abs_priority.sum()</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>abs_priority[1].item()</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>abs_priority[1].item</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+    </expressions>
+  </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/dqn_agent.py">
+    <entry file="file://$PROJECT_DIR$/002_dqn_agent_PER.py" />
+    <entry file="file://$PROJECT_DIR$/002_Navigation_PER.py" />
+    <entry file="file://$PROJECT_DIR$/_001_Navigation.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="540">
-          <caret line="65" column="38" selection-start-line="65" selection-start-column="33" selection-end-line="65" selection-end-column="38" />
+        <state relative-caret-position="195">
+          <caret line="43" column="32" lean-forward="true" selection-start-line="43" selection-start-column="32" selection-end-line="43" selection-end-column="32" />
           <folding>
-            <element signature="e#679#1480#0" />
+            <element signature="e#37#77#0" expanded="true" />
+            <element signature="e#208#1138#1" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Navigation.py">
+    <entry file="file://$PROJECT_DIR$/_001_model.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
-          <caret line="8" column="22" lean-forward="true" selection-start-line="8" selection-start-column="22" selection-end-line="8" selection-end-column="22" />
-          <folding>
-            <element signature="e#36#76#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="420">
-          <caret line="28" lean-forward="true" selection-start-line="28" selection-end-line="28" />
+        <state relative-caret-position="495">
+          <caret line="35" lean-forward="true" selection-start-line="35" selection-end-line="35" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/anaconda3/envs/drlnd/lib/python3.6/site-packages/unityagents/environment.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="220">
+          <caret line="284" selection-start-line="284" selection-end-line="284" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/anaconda3/envs/drlnd/lib/python3.6/site-packages/unityagents/rpc_communicator.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="47">
+          <caret line="47" column="33" lean-forward="true" selection-start-line="47" selection-start-column="33" selection-end-line="47" selection-end-column="33" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/anaconda3/envs/drlnd/lib/python3.6/site-packages/torch/tensor.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="393">
+          <caret line="375" selection-start-line="375" selection-end-line="375" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/anaconda3/envs/drlnd/lib/python3.6/codecs.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="18">
+          <caret line="308" selection-start-line="308" selection-end-line="308" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/_001_dqn_agent.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="520">
+          <caret line="99" column="8" selection-start-line="99" selection-start-column="8" selection-end-line="99" selection-end-column="23" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/_002_dqn_agent.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1440">
+          <caret line="96" column="67" selection-start-line="96" selection-start-column="67" selection-end-line="96" selection-end-column="67" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/_002_Navigation.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-603">
+          <caret line="8" selection-start-line="8" selection-end-line="8" />
+          <folding>
+            <element signature="e#36#76#0" expanded="true" />
           </folding>
         </state>
       </provider>
