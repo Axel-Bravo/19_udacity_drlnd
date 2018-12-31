@@ -28,13 +28,14 @@ def dqn(n_episodes=2000, eps_start=1.0, eps_end=0.01, eps_decay=0.995):
     scores = []  # list containing scores from each episode
     scores_window = deque(maxlen=100)  # last 100 scores
     eps = eps_start  # initialize epsilon
+    BE = 0.01  # importance sampling weight factor
 
     for i_episode in range(1, n_episodes + 1):
         env_info = env.reset(train_mode=True)[brain_name]
         state = env_info.vector_observations[0]
         score = 0
 
-        BE = 0.01  # importance sampling weight factor
+
 
         while True:
             # Agent decision and interaction
@@ -50,7 +51,7 @@ def dqn(n_episodes=2000, eps_start=1.0, eps_end=0.01, eps_decay=0.995):
             agent.step(state, action, reward, next_state, done, BE)
             state = next_state
             score += reward
-            BE = min(BE * 1.5, 1)
+
 
             if done:
                 break
@@ -58,6 +59,7 @@ def dqn(n_episodes=2000, eps_start=1.0, eps_end=0.01, eps_decay=0.995):
         scores_window.append(score)  # save most recent score
         scores.append(score)  # save most recent score
         eps = max(eps_end, eps_decay * eps)  # decrease epsilon
+        BE = min(BE * 1.5, 1)
 
         print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_window)), end="")
         if i_episode % 100 == 0:

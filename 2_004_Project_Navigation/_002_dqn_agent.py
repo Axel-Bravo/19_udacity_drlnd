@@ -96,9 +96,9 @@ class Agent():
         # Get expected Q values from local model
         Q_expected = self.qnetwork_local(states).gather(1, actions)
 
-        # TODO: modificar esto de por aqui tambine 
-        # Compute priority = abs(TD error) + epsilon
-        priority = abs(Q_targets - Q_expected) + 0.01
+        # Get TD error and priority
+        td_error = Q_targets - Q_expected
+        priority = abs(td_error) + 0.01
 
         # Update transition priority
         self.memory.update(priority.detach().numpy(), positions)
@@ -106,9 +106,9 @@ class Agent():
         # Importance sampling weight
         imp_sample_wht = pow((1/BATCH_SIZE)*(1/priority), BE)
 
-        #TODO: adapt loss calculation
         # Compute loss
-        loss = F.mse_loss(Q_expected*imp_sample_wht, Q_targets)
+        loss = F.mse_loss(Q_expected*imp_sample_wht, Q_targets*imp_sample_wht)
+
         # Minimize the loss
         self.optimizer.zero_grad()
         loss.backward()
