@@ -55,6 +55,7 @@ def dqn(n_episodes=2000, eps_start=1.0, eps_end=0.01, eps_decay=0.995, train=Tru
         eps_start (float): starting value of epsilon, for epsilon-greedy action selection
         eps_end (float): minimum value of epsilon
         eps_decay (float): multiplicative factor (per episode) for decreasing epsilon
+        train (bool): added toggler to activate train or evaluate mode
     """
     scores = []  # list containing scores from each episode
     scores_window = deque(maxlen=100)  # last 100 scores
@@ -91,7 +92,7 @@ def dqn(n_episodes=2000, eps_start=1.0, eps_end=0.01, eps_decay=0.995, train=Tru
         print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_window)), end="")
         if i_episode % 100 == 0:
             print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_window)))
-            torch.save(model.state_dict(), 'checkpoint_dqn.pth') # Save model
+            torch.save(agent.qnetwork_local.state_dict(), 'checkpoint_dqn.pth') # Save model
 
     return scores
 
