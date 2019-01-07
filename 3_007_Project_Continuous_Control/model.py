@@ -9,6 +9,7 @@ def hidden_init(layer):
     lim = 1. / np.sqrt(fan_in)
     return (-lim, lim)
 
+
 class Actor(nn.Module):
     """Actor (Policy) Model."""
 
