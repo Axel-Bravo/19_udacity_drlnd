@@ -1,31 +1,10 @@
-#%% Imports
+#%% Imports & Function declaration
 from collections import deque
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
 from unityagents import UnityEnvironment
 from ddpg_agent_multiarm import Agent
-
-#%% Environment load
-env = UnityEnvironment(file_name="Reacher_20_arms.app")
-
-# Get brain information
-brain_name = env.brain_names[0]
-brain = env.brains[brain_name]
-action_size = brain.vector_action_space_size
-
-# Environment information
-env_info = env.reset(train_mode=False)[brain_name]
-state_size = env_info.vector_observations.shape[1]
-num_agents = len(env_info.agents)
-
-
-#%% Trainning DDPG -Agent
-
-# Initialize Agent Band
-agents = []
-for agent_id in range(num_agents):
-    agents.append(Agent(state_size=state_size, action_size=action_size, random_seed=agent_id))
 
 
 def ddpg(n_episodes=2000, max_t=700, train=True):
@@ -72,6 +51,27 @@ def ddpg(n_episodes=2000, max_t=700, train=True):
             print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_episodes_deque)))
     return scores_episodes
 
+
+#%% Load Reacher environement
+env = UnityEnvironment(file_name="Reacher_20_arms.app")
+
+# Get brain information
+brain_name = env.brain_names[0]
+brain = env.brains[brain_name]
+action_size = brain.vector_action_space_size
+
+# Environment information
+env_info = env.reset(train_mode=False)[brain_name]
+state_size = env_info.vector_observations.shape[1]
+num_agents = len(env_info.agents)
+
+
+#%% DDPG - Agent Training
+
+# Initialize Agent Band
+agents = []
+for agent_id in range(num_agents):
+    agents.append(Agent(state_size=state_size, action_size=action_size, random_seed=agent_id))
 
 scores_results = ddpg()
 
