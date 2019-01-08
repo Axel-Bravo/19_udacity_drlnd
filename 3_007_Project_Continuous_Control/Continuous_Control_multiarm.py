@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torch
 from unityagents import UnityEnvironment
-from ddpg_agent import Agent
+from ddpg_agent_multiarm import Agent
 
 #%% Environment load
 env = UnityEnvironment(file_name="Reacher_20_arms.app")
