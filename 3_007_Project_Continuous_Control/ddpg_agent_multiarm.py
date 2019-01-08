@@ -2,7 +2,6 @@ import numpy as np
 import random
 import copy
 from collections import namedtuple, deque
-
 from model import Actor, Critic
 
 import torch
@@ -10,77 +9,19 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 BUFFER_SIZE = int(1e6)  # replay buffer size
-BATCH_SIZE = 128        # minibatch size
+BATCH_SIZE = 256        # minibatch size
 GAMMA = 0.99            # discount factor
 TAU = 1e-3              # for soft update of target parameters
-LR_ACTOR = 1e-4         # learning rate of the actor 
-LR_CRITIC = 3e-4        # learning rate of the critic
+LR_ACTOR = 2.5e-4       # learning rate of the actor
+LR_CRITIC = 3.5e-4      # learning rate of the critic
 WEIGHT_DECAY = 0.0001   # L2 weight decay
+UPDATE_EVERY = 20       # Number of iterations between learnings
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-class ReplayBuffer:
-    """Fixed-size buffer to store experience tuples."""
-
-    def __init__(self, action_size, buffer_size, batch_size, seed):
-        """Initialize a ReplayBuffer object.
-        Params
-        ======
-            buffer_size (int): maximum size of buffer
-            batch_size (int): size of each training batch
-        """
-        self.action_size = action_size
-        self.memory = deque(maxlen=buffer_size)  # internal memory (deque)
-        self.batch_size = batch_size
-        self.experience = namedtuple("Experience", field_names=["state", "action", "reward", "next_state", "done"])
-        self.seed = random.seed(seed)
-
-    def add(self, state, action, reward, next_state, done):
-        """Add a new experience to memory."""
-        e = self.experience(state, action, reward, next_state, done)
-        self.memory.append(e)
-
-    def sample(self):
-        """Randomly sample a batch of experiences from memory."""
-        experiences = random.sample(self.memory, k=self.batch_size)
-
-        states = torch.from_numpy(np.vstack([e.state for e in experiences if e is not None])).float().to(device)
-        actions = torch.from_numpy(np.vstack([e.action for e in experiences if e is not None])).float().to(device)
-        rewards = torch.from_numpy(np.vstack([e.reward for e in experiences if e is not None])).float().to(device)
-        next_states = torch.from_numpy(np.vstack([e.next_state for e in experiences if e is not None])).float().to(
-            device)
-        dones = torch.from_numpy(np.vstack([e.done for e in experiences if e is not None]).astype(np.uint8)).float().to(
-            device)
-
-        return (states, actions, rewards, next_states, dones)
-
-    def __len__(self):
-        """Return the current size of internal memory."""
-        return len(self.memory)
-
-
 class Agent(object):
     """Interacts with and learns from the environment."""
-
-    # Class variables
-    action_size = 4
-    state_size = 33
-    random_seed = 0
-
-    # Replay memory
-    memory = ReplayBuffer(4, BUFFER_SIZE, BATCH_SIZE, 0)
-
-    # Actor Network (w/ Target Network)
-    actor_local = Actor(state_size, action_size, random_seed).to(device)
-    actor_target = Actor(state_size, action_size, random_seed).to(device)
-    actor_optimizer = optim.Adam(actor_local.parameters(), lr=LR_ACTOR)
-
-    # Critic Network (w/ Target Network)
-    critic_local = Critic(state_size, action_size, random_seed).to(device)
-    critic_target = Critic(state_size, action_size, random_seed).to(device)
-    critic_optimizer = optim.Adam(critic_local.parameters(), lr=LR_CRITIC, weight_decay=WEIGHT_DECAY)
-
 
     def __init__(self, state_size, action_size, random_seed):
         """Initialize an Agent object.
@@ -91,22 +32,51 @@ class Agent(object):
             action_size (int): dimension of each action
             random_seed (int): random seed
         """
+
         self.state_size = state_size
         self.action_size = action_size
         self.seed = random.seed(random_seed)
 
+        # Actor Network (w/ Target Network)
+        self.actor_local = Actor(state_size, action_size, random_seed).to(device)
+        self.actor_target = Actor(state_size, action_size, random_seed).to(device)
+        self.actor_optimizer = optim.Adam(self.actor_local.parameters(), lr=LR_ACTOR)
+
+        # Critic Network (w/ Target Network)
+        self.critic_local = Critic(state_size, action_size, random_seed).to(device)
+        self.critic_target = Critic(state_size, action_size, random_seed).to(device)
+        self.critic_optimizer = optim.Adam(self.critic_local.parameters(), lr=LR_CRITIC, weight_decay=WEIGHT_DECAY)
+
         # Noise process
         self.noise = OUNoise(action_size, random_seed)
 
-    def step(self, state, action, reward, next_state, done):
+        # Replay memory
+        self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, random_seed)
+
+        # Step memory
+        self.step_mem = 0
+        self.train = False
+
+    def save_experience(self, state, action, reward, next_state, done):
         """Save experience in replay memory, and use random sample from buffer to learn."""
         # Save experience / reward
         self.memory.add(state, action, reward, next_state, done)
 
+    def trigger_learn(self):
+        self.step_mem = 0
+        self.train = False
+
+        """Triggers learning procedure each """
         # Learn, if enough samples are available in memory
         if len(self.memory) > BATCH_SIZE:
             experiences = self.memory.sample()
             self.learn(experiences, GAMMA)
+
+    def update_counter(self):
+        self.step_mem += 1
+
+        if self.step_mem / UPDATE_EVERY == 1:
+            self.train = True
 
     def act(self, state, add_noise=True):
         """Returns actions for given state as per current policy."""
@@ -200,4 +170,44 @@ class OUNoise:
         self.state = x + dx
         return self.state
 
+
+
+class ReplayBuffer:
+    """Fixed-size buffer to store experience tuples."""
+
+    def __init__(self, action_size, buffer_size, batch_size, seed):
+        """Initialize a ReplayBuffer object.
+        Params
+        ======
+            buffer_size (int): maximum size of buffer
+            batch_size (int): size of each training batch
+        """
+        self.action_size = action_size
+        self.memory = deque(maxlen=buffer_size)  # internal memory (deque)
+        self.batch_size = batch_size
+        self.experience = namedtuple("Experience", field_names=["state", "action", "reward", "next_state", "done"])
+        self.seed = random.seed(seed)
+
+    def add(self, state, action, reward, next_state, done):
+        """Add a new experience to memory."""
+        e = self.experience(state, action, reward, next_state, done)
+        self.memory.append(e)
+
+    def sample(self):
+        """Randomly sample a batch of experiences from memory."""
+        experiences = random.sample(self.memory, k=self.batch_size)
+
+        states = torch.from_numpy(np.vstack([e.state for e in experiences if e is not None])).float().to(device)
+        actions = torch.from_numpy(np.vstack([e.action for e in experiences if e is not None])).float().to(device)
+        rewards = torch.from_numpy(np.vstack([e.reward for e in experiences if e is not None])).float().to(device)
+        next_states = torch.from_numpy(np.vstack([e.next_state for e in experiences if e is not None])).float().to(
+            device)
+        dones = torch.from_numpy(np.vstack([e.done for e in experiences if e is not None]).astype(np.uint8)).float().to(
+            device)
+
+        return (states, actions, rewards, next_states, dones)
+
+    def __len__(self):
+        """Return the current size of internal memory."""
+        return len(self.memory)
 
