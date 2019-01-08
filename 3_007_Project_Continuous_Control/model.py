@@ -1,19 +1,12 @@
-import numpy as np
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
-def hidden_init(layer):
-    fan_in = layer.weight.data.size()[0]
-    lim = 1. / np.sqrt(fan_in)
-    return (-lim, lim)
 
 
 class Actor(nn.Module):
     """Actor (Policy) Model."""
 
-    def __init__(self, state_size, action_size, seed, fc_units=256):
+    def __init__(self, state_size, action_size, seed, fc_units_1=128, fc_units_2=128):
         """Initialize parameters and build model.
         Params
         ======
@@ -25,24 +18,27 @@ class Actor(nn.Module):
         """
         super(Actor, self).__init__()
         self.seed = torch.manual_seed(seed)
-        self.fc1 = nn.Linear(state_size, fc_units)
-        self.fc2 = nn.Linear(fc_units, action_size)
-        self.reset_parameters()
 
-    def reset_parameters(self):
-        self.fc1.weight.data.uniform_(*hidden_init(self.fc1))
-        self.fc2.weight.data.uniform_(-3e-3, 3e-3)
+        self.fc1 = nn.Linear(state_size, fc_units_1)
+        self.ln_1 = nn.LayerNorm(fc_units_1)
+        self.fc2 = nn.Linear(fc_units_1, fc_units_2)
+        self.ln_2 = nn.LayerNorm(fc_units_2)
+        self.fc3 = nn.Linear(fc_units_2, action_size)
 
     def forward(self, state):
         """Build an actor (policy) network that maps states -> actions."""
-        x = F.relu(self.fc1(state))
-        return F.tanh(self.fc2(x))
+        x = self.fc1(state)
+        x = self.ln_1(F.relu(x))
+        x = self.fc2(x)
+        x = self.ln_2(F.relu(x))
+        x = self.fc3(x)
+        return F.tanh(x)
 
 
 class Critic(nn.Module):
     """Critic (Value) Model."""
 
-    def __init__(self, state_size, action_size, seed, fcs1_units=256, fc2_units=256, fc3_units=128):
+    def __init__(self, state_size, action_size, seed, fcs1_units=128, fc2_units=128):
         """Initialize parameters and build model.
         Params
         ======
@@ -54,22 +50,18 @@ class Critic(nn.Module):
         """
         super(Critic, self).__init__()
         self.seed = torch.manual_seed(seed)
-        self.fcs1 = nn.Linear(state_size, fcs1_units)
-        self.fc2 = nn.Linear(fcs1_units+action_size, fc2_units)
-        self.fc3 = nn.Linear(fc2_units, fc3_units)
-        self.fc4 = nn.Linear(fc3_units, 1)
-        self.reset_parameters()
 
-    def reset_parameters(self):
-        self.fcs1.weight.data.uniform_(*hidden_init(self.fcs1))
-        self.fc2.weight.data.uniform_(*hidden_init(self.fc2))
-        self.fc3.weight.data.uniform_(*hidden_init(self.fc3))
-        self.fc4.weight.data.uniform_(-3e-3, 3e-3)
+        self.fcs1 = nn.Linear(state_size, fcs1_units)
+        self.ln_1 = nn.LayerNorm(fcs1_units)
+        self.fc2 = nn.Linear(fcs1_units+action_size, fc2_units)
+        self.ln_2 = nn.LayerNorm(fc2_units)
+        self.fc3 = nn.Linear(fc2_units, 1)
 
     def forward(self, state, action):
         """Build a critic (value) network that maps (state, action) pairs -> Q-values."""
-        xs = F.leaky_relu(self.fcs1(state))
+        xs = self.fcs1(state)
+        xs = self.ln_1(F.relu(xs))
         x = torch.cat((xs, action), dim=1)
-        x = F.leaky_relu(self.fc2(x))
-        x = F.leaky_relu(self.fc3(x))
-        return self.fc4(x)
+        x = self.fc2(x)
+        x = self.ln_2(F.relu(x))
+        return self.fc3(x)
