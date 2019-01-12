@@ -7,7 +7,7 @@ from unityagents import UnityEnvironment
 from ddpg_agent_multiarm import Agent
 
 
-def ddpg(agent, n_episodes=2000, max_t=900, num_agents=20, consec_learn_iter=10):
+def ddpg(agent, n_episodes=2000, max_t=800, num_agents=20, consec_learn_iter=15):
     """ DDPG - Algorithm implementation"""
     scores_episodes = []
     scores_episodes_deque = deque(maxlen=100)
@@ -21,9 +21,9 @@ def ddpg(agent, n_episodes=2000, max_t=900, num_agents=20, consec_learn_iter=10)
             # Agent decision and interaction
             actions = []
 
-            for agent_id in range(num_agents):
+            for state in states:
                 agent.reset()
-                actions.append(agent.act(states[agent_id]))
+                actions.append(agent.act(state))
 
             env_info = env.step(actions)[brain_name]
 
@@ -33,13 +33,14 @@ def ddpg(agent, n_episodes=2000, max_t=900, num_agents=20, consec_learn_iter=10)
             dones = env_info.local_done
 
             # Experience saving
-            [agent.save_experience(state, action, reward, next_state, done) for state, action, reward, next_state, done
-             in zip(states, actions, rewards, next_states, dones)]
+            for state, action, reward, next_state, done in zip(states, actions, rewards, next_states, dones):
+                agent.save_experience(state, action, reward, next_state, done)
             agent.update_counter()
 
             # Update values
             if agent.train:
-                [agent.trigger_learn() for _ in range(consec_learn_iter)]
+                for _ in range(consec_learn_iter):
+                    agent.trigger_learn()
 
             states = next_states
             scores += rewards
@@ -64,6 +65,8 @@ def ddpg(agent, n_episodes=2000, max_t=900, num_agents=20, consec_learn_iter=10)
             torch.save(agent.critic_local.state_dict(), 'model_critic_20_arms.pth')
             print('\rEpisode employed for completing the challenge {}'.format(i_episode))
 
+            break
+
     return scores_episodes
 
 
@@ -84,7 +87,7 @@ num_agents = len(env_info.agents)
 #%% DDPG - Agent Training
 
 # Initialize Agent
-agent = Agent(state_size=state_size, action_size=action_size, random_seed=1)
+agent = Agent(state_size=state_size, action_size=action_size, random_seed=11)
 
 # Execute DDPG - Learning
 score = ddpg(agent)

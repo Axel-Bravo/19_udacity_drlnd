@@ -12,10 +12,10 @@ BUFFER_SIZE = int(1e6)  # replay buffer size
 BATCH_SIZE = 256        # minibatch size
 GAMMA = 0.99            # discount factor
 TAU = 1e-3              # for soft update of target parameters
-LR_ACTOR = 2.5e-4       # learning rate of the actor
-LR_CRITIC = 3.5e-4      # learning rate of the critic
+LR_ACTOR = 2e-4       # learning rate of the actor
+LR_CRITIC = 4e-4      # learning rate of the critic
 WEIGHT_DECAY = 0.0001   # L2 weight decay
-UPDATE_EVERY = 20       # Number of iterations between learnings
+UPDATE_EVERY = 15       # Number of iterations between learnings
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -85,6 +85,7 @@ class Agent(object):
         with torch.no_grad():
             action = self.actor_local(state).cpu().data.numpy()
         self.actor_local.train()
+
         if add_noise:
             action += self.noise.sample()
         return np.clip(action, -1, 1)
@@ -169,7 +170,6 @@ class OUNoise:
         dx = self.theta * (self.mu - x) + self.sigma * np.array([random.random() for i in range(len(x))])
         self.state = x + dx
         return self.state
-
 
 
 class ReplayBuffer:
