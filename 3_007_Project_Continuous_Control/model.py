@@ -6,7 +6,7 @@ import torch.nn.functional as F
 class Actor(nn.Module):
     """Actor (Policy) Model."""
 
-    def __init__(self, state_size, action_size, seed, fc_units_1=128, fc_units_2=256, fc_units_3=128, fc_units_4=64):
+    def __init__(self, state_size, action_size, seed, fc_units_1=32, fc_units_2=32):
         """Initialize parameters and build model.
         Params
         ======
@@ -23,11 +23,8 @@ class Actor(nn.Module):
         self.ln_1 = nn.LayerNorm(fc_units_1)
         self.fc2 = nn.Linear(fc_units_1, fc_units_2)
         self.ln_2 = nn.LayerNorm(fc_units_2)
-        self.fc3 = nn.Linear(fc_units_2, fc_units_3)
-        self.ln_3 = nn.LayerNorm(fc_units_3)
-        self.fc4 = nn.Linear(fc_units_3, fc_units_4)
-        self.ln_4 = nn.LayerNorm(fc_units_4)
-        self.fc5 = nn.Linear(fc_units_4, action_size)
+        self.fc3 = nn.Linear(fc_units_2, action_size)
+        self.ln_3 = nn.LayerNorm(action_size)
 
     def forward(self, state):
         """Build an actor (policy) network that maps states -> actions."""
@@ -37,9 +34,6 @@ class Actor(nn.Module):
         x = self.ln_2(F.relu(x))
         x = self.fc3(x)
         x = self.ln_3(F.relu(x))
-        x = self.fc4(x)
-        x = self.ln_4(F.relu(x))
-        x = self.fc5(x)
 
         return F.tanh(x)
 

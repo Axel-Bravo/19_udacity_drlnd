@@ -9,13 +9,13 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 BUFFER_SIZE = int(1e6)  # replay buffer size
-BATCH_SIZE = 256        # minibatch size
+BATCH_SIZE = 64        # minibatch size
 GAMMA = 0.99            # discount factor
 TAU = 1e-3              # for soft update of target parameters
-LR_ACTOR = 2e-4       # learning rate of the actor
-LR_CRITIC = 4e-4      # learning rate of the critic
+LR_ACTOR = 1e-4       # learning rate of the actor
+LR_CRITIC = 2e-4      # learning rate of the critic
 WEIGHT_DECAY = 0.0001   # L2 weight decay
-UPDATE_EVERY = 15       # Number of iterations between learnings
+UPDATE_EVERY = 3       # Number of iterations between learnings
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -78,7 +78,7 @@ class Agent(object):
         if self.step_mem / UPDATE_EVERY == 1:
             self.train = True
 
-    def act(self, state, add_noise=True):
+    def act(self, state, add_noise=False):
         """Returns actions for given state as per current policy."""
         state = torch.from_numpy(state).float().to(device)
         self.actor_local.eval()
