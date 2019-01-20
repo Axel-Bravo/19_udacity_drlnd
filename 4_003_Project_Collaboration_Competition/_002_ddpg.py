@@ -5,10 +5,25 @@ import torch
 import torch.nn.functional as F
 from torch.optim import Adam
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 
 class DDPGAgent(object):
     def __init__(self, in_actor, hidden_in_actor, hidden_out_actor, out_actor, in_critic, hidden_in_critic,
                  hidden_out_critic, lr_actor=1.0e-2, lr_critic=1.0e-2, tau=0.02):
+        """
+        DDPG algorithm implementation for a single agent
+        :param in_actor: State space dimension
+        :param hidden_in_actor: Hidden input layer dimension
+        :param hidden_out_actor: Hidden output layer dimension
+        :param out_actor: Number of actions dimension
+        :param in_critic: Full observation dimension + all actions dimension
+        :param hidden_in_critic: Hidden input layer dimension
+        :param hidden_out_critic: Hidden output layer dimension
+        :param lr_actor: learning rate actor network
+        :param lr_critic: learning rate critic network
+        :param tau: Soft network update coefficient
+        """
         super(DDPGAgent, self).__init__()
 
         # Actor
@@ -26,10 +41,18 @@ class DDPGAgent(object):
 
         # Parameters
         self.tau = tau
+        self.exploration = 1.0
 
-    def act(self, obs, noise=0.0):
+    def act(self, obs, reduce_exploration=0.99):
+        """
+        Outputs action, based on a local actor policy
+        :param obs: space current state, in which we want to execute an action
+        :param reduce_exploration: coefficient to move from a "exploratory" -> "exploiting" action selection
+        :return: action
+        """
         obs = obs.to(device)
-        action = self.actor_local(obs) + noise*self.noise.noise()
+        action = self.actor_local(obs) + self.exploration*self.noise.noise()
+        self.exploration *= reduce_exploration
         return action
 
     def learn(self, experiences, gamma):
