@@ -43,15 +43,16 @@ class DDPGAgent(object):
         self.tau = tau
         self.exploration = 1.0
 
-    def act(self, obs, reduce_exploration=0.99):
+    def act(self, obs, noise=1.0, reduce_exploration=0.99):
         """
         Outputs action, based on a local actor policy
-        :param obs: space current state, in which we want to execute an action
+        :param obs: space current state, in which we want to execute an
+        :param noise: quantity of noise to add to actions
         :param reduce_exploration: coefficient to move from a "exploratory" -> "exploiting" action selection
         :return: action
         """
         obs = obs.to(device)
-        action = self.actor_local(obs) + self.exploration*self.noise.noise()
+        action = self.actor_local(obs) + noise*self.exploration*self.noise.noise()
         self.exploration *= reduce_exploration
         return action
 
