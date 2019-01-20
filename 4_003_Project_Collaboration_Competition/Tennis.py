@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torch
 from unityagents import UnityEnvironment
-from ddpg_agent_tennis import Agent
+from _002_ddpg import DDPGAgent
 
 
 def ddpg(agent, n_episodes=2000, max_t=800, num_agents=2, consec_learn_iter=5):
@@ -86,9 +86,9 @@ num_agents = len(env_info.agents)
 
 
 #%% DDPG - Agent Training
-
+# TODO: necesito do agentes
 # Initialize Agent
-agent = Agent(state_size=state_size, action_size=action_size, random_seed=11)
+agent = DDPGAgent(state_size=state_size, action_size=action_size, random_seed=11)
 
 # Execute DDPG - Learning
 score = ddpg(agent)
@@ -124,7 +124,7 @@ for i in range(1, 6):                                      # play game for 5 epi
 #%% DDPG - Agent Training
 
 # Initialize Agent
-agent = Agent(state_size=state_size, action_size=action_size, random_seed=11)
+agent = DDPGAgent(state_size=state_size, action_size=action_size, random_seed=11)
 
 # Execute DDPG - Learning
 score = ddpg(agent)
