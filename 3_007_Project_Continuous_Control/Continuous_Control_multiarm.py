@@ -7,7 +7,7 @@ from unityagents import UnityEnvironment
 from ddpg_agent_multiarm import Agent
 
 
-def ddpg(agent, n_episodes=2000, max_t=800, num_agents=20, consec_learn_iter=10):
+def ddpg(agent, n_episodes=2000, max_t=800, num_agents=20, consec_learn_iter=4):
     """ DDPG - Algorithm implementation"""
     scores_episodes = []
     scores_episodes_deque = deque(maxlen=100)
@@ -87,7 +87,7 @@ num_agents = len(env_info.agents)
 #%% DDPG - Agent Training
 
 # Initialize Agent
-agent = Agent(state_size=state_size, action_size=action_size, random_seed=11)
+agent = Agent(state_size=state_size, action_size=action_size, random_seed=5)
 
 # Execute DDPG - Learning
 score = ddpg(agent)
