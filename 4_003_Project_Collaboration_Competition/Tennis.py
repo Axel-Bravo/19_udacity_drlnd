@@ -7,7 +7,7 @@ from unityagents import UnityEnvironment
 from ddpg import Agent
 
 
-def maddpg(agent, n_episodes=5000, max_t=1200, num_agents=2):
+def maddpg(agent, n_episodes=5000, max_t=1600, num_agents=2):
     """ DDPG - Algorithm implementation"""
     scores_episodes = []
     scores_episodes_deque = deque(maxlen=100)
@@ -49,6 +49,10 @@ def maddpg(agent, n_episodes=5000, max_t=1200, num_agents=2):
             torch.save(agent.critic_local.state_dict(), 'checkpoint_critic_tennis.pth')
             print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_episodes_deque)))
 
+        if i_episode % 200 == 0:
+            print('\rEpisode {}, replaybuffer cleaned'.format(i_episode))
+            agent.memory.memory.clear()  # We empty the memory
+
         if np.mean(scores_episodes_deque) > 0.5:
             torch.save(agent.actor_local.state_dict(), 'model_actor_tennis.pth')
             torch.save(agent.critic_local.state_dict(), 'model_critic_tennis.pth')
@@ -56,7 +60,7 @@ def maddpg(agent, n_episodes=5000, max_t=1200, num_agents=2):
 
             break
 
-    return scores_episodes
+    return scores_episodes, scores_episodes_deque
 
 
 #%% Load Reacher environment
@@ -79,7 +83,7 @@ num_agents = len(env_info.agents)
 agent = Agent(state_size=state_size, action_size=action_size, num_agents=2, random_seed=10)
 
 # Execute DDPG - Learning
-score = maddpg(agent)
+score, score_episodes_deque = maddpg(agent)
 
 # Plot results
 fig = plt.figure()
