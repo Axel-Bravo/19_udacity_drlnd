@@ -51,10 +51,11 @@ class DDPGAgent(object):
         :param reduce_exploration: coefficient to move from a "exploratory" -> "exploiting" action selection
         :return: action
         """
-        obs = obs.to(device)
-        action = self.actor_local(obs) + noise*self.exploration*self.noise.noise()
+
+        obs = torch.tensor(data=obs, dtype=torch.double, device=device)
+        action = self.actor_local(obs).detach() # + noise*self.exploration*self.noise.noise()
         self.exploration *= reduce_exploration
-        return action
+        return action.numpy()
 
     def learn(self, experiences, gamma):
         """Update policy and value parameters using given batch of experience tuples.

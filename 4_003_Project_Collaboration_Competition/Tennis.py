@@ -5,18 +5,20 @@ import matplotlib.pyplot as plt
 import torch
 from unityagents import UnityEnvironment
 
+torch.set_default_tensor_type('torch.DoubleTensor')
+
 from _003_maddpg import MADDPG
 from _buffer import ReplayBuffer
 
 
-def run_maddpg(agent, n_episodes=2000, max_t=800, num_agents=2, consec_learn_iter=5):
+def run_maddpg(agent, n_episodes=2000, max_t=800, num_agents=2, batch_size=128):
     """ MADDPG - Algorithm implementation"""
 
     scores_episodes = []
     scores_episodes_deque = deque(maxlen=100)
 
-    buffer = {'agent_1': ReplayBuffer(int(500 * max_t)),
-              'agent_2': ReplayBuffer(int(500 * max_t))}
+    buffer = {'agent_1': ReplayBuffer(int(50 * max_t)),
+              'agent_2': ReplayBuffer(int(50 * max_t))}
 
     for i_episode in range(1, n_episodes+1):
         env_info = env.reset(train_mode=True)[brain_name]
@@ -25,7 +27,7 @@ def run_maddpg(agent, n_episodes=2000, max_t=800, num_agents=2, consec_learn_ite
 
         for t in range(max_t):
             # Agent decision and interaction
-            actions =agent.act(states)
+            actions = agent.act(states)
             env_info = env.step(actions)[brain_name]
 
             # Feedback on action
@@ -38,8 +40,9 @@ def run_maddpg(agent, n_episodes=2000, max_t=800, num_agents=2, consec_learn_ite
                 buffer['agent_' + str(enum + 1)].push(experience)
 
             # Update values
-            if len(buffer[0]) >= 128:
-                agent.learn()
+            if len(buffer['agent_1']) >= batch_size:
+                agent.learn(buffer['agent_1'].sample(batch_size), 0)
+                agent.learn(buffer['agent_2'].sample(batch_size), 1)
 
             states = next_states
             scores += rewards
