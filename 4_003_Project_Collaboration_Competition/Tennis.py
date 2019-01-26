@@ -4,13 +4,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torch
 from unityagents import UnityEnvironment
-from _002_ddpg import DDPGAgent
+
+from _003_maddpg import MADDPG
+from _buffer import ReplayBuffer
 
 
-def ddpg(agent, n_episodes=2000, max_t=800, num_agents=2, consec_learn_iter=5):
-    """ DDPG - Algorithm implementation"""
+def run_maddpg(agent, n_episodes=2000, max_t=800, num_agents=2, consec_learn_iter=5):
+    """ MADDPG - Algorithm implementation"""
+
     scores_episodes = []
     scores_episodes_deque = deque(maxlen=100)
+
+    buffer = {'agent_1': ReplayBuffer(int(500 * max_t)),
+              'agent_2': ReplayBuffer(int(500 * max_t))}
 
     for i_episode in range(1, n_episodes+1):
         env_info = env.reset(train_mode=True)[brain_name]
@@ -19,12 +25,7 @@ def ddpg(agent, n_episodes=2000, max_t=800, num_agents=2, consec_learn_iter=5):
 
         for t in range(max_t):
             # Agent decision and interaction
-            actions = []
-
-            for state in states:
-                agent.reset()
-                actions.append(agent.act(state))
-
+            actions =agent.act(states)
             env_info = env.step(actions)[brain_name]
 
             # Feedback on action
@@ -33,14 +34,12 @@ def ddpg(agent, n_episodes=2000, max_t=800, num_agents=2, consec_learn_iter=5):
             dones = env_info.local_done
 
             # Experience saving
-            for state, action, reward, next_state, done in zip(states, actions, rewards, next_states, dones):
-                agent.save_experience(state, action, reward, next_state, done)
-            agent.update_counter()
+            for enum, experience in enumerate(zip(states, actions, rewards, next_states, dones)):
+                buffer['agent_' + str(enum + 1)].push(experience)
 
             # Update values
-            if agent.train:
-                for _ in range(consec_learn_iter):
-                    agent.trigger_learn()
+            if len(buffer[0]) >= 128:
+                agent.learn()
 
             states = next_states
             scores += rewards
@@ -49,20 +48,20 @@ def ddpg(agent, n_episodes=2000, max_t=800, num_agents=2, consec_learn_iter=5):
                 break
 
         # Scoring & Terminal information
-        scores_episodes.append(np.mean(scores))
-        scores_episodes_deque.append(np.mean(scores))
+        scores_episodes.append(np.max(scores))
+        scores_episodes_deque.append(np.max(scores))
 
         print('\rEpisode {}\tAverage Score: {:.2f}\tScore: {:.2f}'.format(i_episode, np.mean(scores_episodes_deque),
-                                                                          np.mean(scores)), end="")
+                                                                          np.max(scores)), end="")
 
         if i_episode % 100 == 0:
-            torch.save(agent.actor_local.state_dict(), 'checkpoint_actor_20_arms.pth')
-            torch.save(agent.critic_local.state_dict(), 'checkpoint_critic_20_arms.pth')
+            agent.save_actors(checkpoint_name='checkpoint')
+            agent.save_critics(checkpoint_name='checkpoint')
             print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_episodes_deque)))
 
-        if np.mean(scores_episodes_deque) > 30.0:
-            torch.save(agent.actor_local.state_dict(), 'model_actor_20_arms.pth')
-            torch.save(agent.critic_local.state_dict(), 'model_critic_20_arms.pth')
+        if np.mean(scores_episodes_deque) > 0.5:
+            agent.save_actors(checkpoint_name='final_model')
+            agent.save_critics(checkpoint_name='final_model')
             print('\rEpisode employed for completing the challenge {}'.format(i_episode))
 
             break
@@ -85,13 +84,12 @@ state_size = states.shape[1]
 num_agents = len(env_info.agents)
 
 
-#%% DDPG - Agent Training
-# TODO: necesito do agentes
+#%% MA-DDPG - Agent Training
 # Initialize Agent
-agent = DDPGAgent(state_size=state_size, action_size=action_size, random_seed=11)
+agent = MADDPG()
 
-# Execute DDPG - Learning
-score = ddpg(agent)
+# Execute MA-DDPG - Learning
+score = run_maddpg(agent)
 
 # Plot results
 fig = plt.figure()
@@ -119,24 +117,6 @@ for i in range(1, 6):                                      # play game for 5 epi
         if np.any(dones):                                  # exit loop if episode finished
             break
     print('Score (max over agents) from episode {}: {}'.format(i, np.max(scores)))
-
-
-#%% DDPG - Agent Training
-
-# Initialize Agent
-agent = DDPGAgent(state_size=state_size, action_size=action_size, random_seed=11)
-
-# Execute DDPG - Learning
-score = ddpg(agent)
-
-# Plot results
-fig = plt.figure()
-ax = fig.add_subplot(111)
-plt.plot(np.arange(1, len(score)+1), score)
-plt.ylabel('Score')
-plt.xlabel('Episode #')
-plt.show()
-
 
 #%% Environement- Close
 env.close()

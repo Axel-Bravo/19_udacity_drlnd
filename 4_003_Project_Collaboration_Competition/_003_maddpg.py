@@ -20,7 +20,7 @@ class MADDPG(object):
         actors = [ddpg_agent.actor_local for ddpg_agent in self.maddpg_agent]
         return actors
 
-    def get_actor_target(self):
+    def get_actors_target(self):
         """get target_actors of all the agents in the MADDPG object"""
         actor_target = [ddpg_agent.actor_target for ddpg_agent in self.maddpg_agent]
         return actor_target
@@ -33,3 +33,13 @@ class MADDPG(object):
     def learn(self, experiences, agent):
         """get all the agents in the MADDPG object to learn """
         self.maddpg_agent[agent].learn(experiences, self.discount_factor)
+
+    def save_actors(self, checkpoint_name: str):
+        """Saves actors on the current working directory"""
+        for pos, actor_local in enumerate(self.get_actors()):
+            torch.save(actor_local.state_dict(), checkpoint_name + '_actor_tennis_' + str(pos+1) + '.pth')
+
+    def save_critics(self, checkpoint_name: str):
+        """Saves critics on the current working directory"""
+        for pos, critic_local in enumerate([ddpg_agent.critic_local for ddpg_agent in self.maddpg_agent]):
+            torch.save(critic_local.state_dict(), checkpoint_name + '_critic_tennis_' + str(pos+1) + '.pth')
