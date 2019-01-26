@@ -4,72 +4,63 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torch
 from unityagents import UnityEnvironment
-
-torch.set_default_tensor_type('torch.DoubleTensor')
-
-from _003_maddpg import MADDPG
-from _buffer import ReplayBuffer
+from ddpg import Agent
 
 
-def run_maddpg(agent, n_episodes=2000, max_t=800, num_agents=2, batch_size=128):
-    """ MADDPG - Algorithm implementation"""
-
+def maddpg(agent, n_episodes=5000, max_t=1600, num_agents=2):
+    """ DDPG - Algorithm implementation"""
     scores_episodes = []
     scores_episodes_deque = deque(maxlen=100)
 
-    buffer = {'agent_1': ReplayBuffer(int(50 * max_t)),
-              'agent_2': ReplayBuffer(int(50 * max_t))}
-
     for i_episode in range(1, n_episodes+1):
         env_info = env.reset(train_mode=True)[brain_name]
-        states = env_info.vector_observations
-        scores = np.zeros(num_agents)
+        state = env_info.vector_observations
+        score = np.zeros(num_agents)
+        agent.reset()
 
         for t in range(max_t):
             # Agent decision and interaction
-            actions = agent.act(states)
+            actions = agent.act(state)
             env_info = env.step(actions)[brain_name]
 
             # Feedback on action
-            next_states = env_info.vector_observations
+            next_state = env_info.vector_observations
             rewards = env_info.rewards
             dones = env_info.local_done
 
-            # Experience saving
-            for enum, experience in enumerate(zip(states, actions, rewards, next_states, dones)):
-                buffer['agent_' + str(enum + 1)].push(experience)
+            agent.memorize(state, actions, rewards, next_state, dones)
+            agent.learn()
 
-            # Update values
-            if len(buffer['agent_1']) >= batch_size:
-                agent.learn(buffer['agent_1'].sample(batch_size), 0)
-                agent.learn(buffer['agent_2'].sample(batch_size), 1)
-
-            states = next_states
-            scores += rewards
+            state = next_state
+            score += rewards
 
             if np.any(dones):
                 break
 
         # Scoring & Terminal information
-        scores_episodes.append(np.max(scores))
-        scores_episodes_deque.append(np.max(scores))
+        scores_episodes.append(np.max(score))
+        scores_episodes_deque.append(np.max(score))
 
-        print('\rEpisode {}\tAverage Score: {:.2f}\tScore: {:.2f}'.format(i_episode, np.mean(scores_episodes_deque),
-                                                                          np.max(scores)), end="")
+        print('Episode {}\tAverage Score: {:.2f}\tScore: {:.2f}'.format(
+            i_episode, np.mean(scores_episodes_deque), np.max(score)))
 
         if i_episode % 100 == 0:
-            agent.save_actors(checkpoint_name='checkpoint')
-            agent.save_critics(checkpoint_name='checkpoint')
+            torch.save(agent.actor_local.state_dict(), 'checkpoint_actor_tennis.pth')
+            torch.save(agent.critic_local.state_dict(), 'checkpoint_critic_tennis.pth')
             print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_episodes_deque)))
 
+        if i_episode % 400 == 0:
+            print('\rEpisode {}, replaybuffer cleaned'.format(i_episode))
+            agent.memory.memory.clear()  # We empty the memory
+
         if np.mean(scores_episodes_deque) > 0.5:
-            agent.save_actors(checkpoint_name='final_model')
-            agent.save_critics(checkpoint_name='final_model')
+            torch.save(agent.actor_local.state_dict(), 'model_actor_tennis.pth')
+            torch.save(agent.critic_local.state_dict(), 'model_critic_tennis.pth')
             print('\rEpisode employed for completing the challenge {}'.format(i_episode))
 
             break
 
-    return scores_episodes
+    return scores_episodes, scores_episodes_deque
 
 
 #%% Load Tennis environment
@@ -81,18 +72,18 @@ brain = env.brains[brain_name]
 action_size = brain.vector_action_space_size
 
 # Environment information
-env_info = env.reset(train_mode=True)[brain_name]
-states = env_info.vector_observations
-state_size = states.shape[1]
+env_info = env.reset(train_mode=False)[brain_name]
+state_size = env_info.vector_observations.shape[1]
 num_agents = len(env_info.agents)
 
 
-#%% MA-DDPG - Agent Training
-# Initialize Agent
-agent = MADDPG()
+#%% DDPG - Agent Training
 
-# Execute MA-DDPG - Learning
-score = run_maddpg(agent)
+# Initialize Agent
+agent = Agent(state_size=state_size, action_size=action_size, num_agents=2, random_seed=10)
+
+# Execute DDPG - Learning
+score, score_episodes_deque = maddpg(agent)
 
 # Plot results
 fig = plt.figure()
@@ -101,25 +92,6 @@ plt.plot(np.arange(1, len(score)+1), score)
 plt.ylabel('Score')
 plt.xlabel('Episode #')
 plt.show()
-
-#%% Actions for adapting code
-# TODO: use and delete, TEMPORAL
-for i in range(1, 6):                                      # play game for 5 episodes
-    env_info = env.reset(train_mode=False)[brain_name]     # reset the environment    
-    states = env_info.vector_observations                  # get the current state (for each agent)
-    scores = np.zeros(num_agents)                          # initialize the score (for each agent)
-    while True:
-        actions = np.random.randn(num_agents, action_size) # select an action (for each agent)
-        actions = np.clip(actions, -1, 1)                  # all actions between -1 and 1
-        env_info = env.step(actions)[brain_name]           # send all actions to tne environment
-        next_states = env_info.vector_observations         # get next state (for each agent)
-        rewards = env_info.rewards                         # get reward (for each agent)
-        dones = env_info.local_done                        # see if episode finished
-        scores += env_info.rewards                         # update the score (for each agent)
-        states = next_states                               # roll over states to next time step
-        if np.any(dones):                                  # exit loop if episode finished
-            break
-    print('Score (max over agents) from episode {}: {}'.format(i, np.max(scores)))
 
 #%% Environement- Close
 env.close()
