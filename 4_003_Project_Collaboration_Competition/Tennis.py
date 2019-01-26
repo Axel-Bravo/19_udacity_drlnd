@@ -49,7 +49,7 @@ def maddpg(agent, n_episodes=5000, max_t=1600, num_agents=2):
             torch.save(agent.critic_local.state_dict(), 'checkpoint_critic_tennis.pth')
             print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_episodes_deque)))
 
-        if i_episode % 200 == 0:
+        if i_episode % 400 == 0:
             print('\rEpisode {}, replaybuffer cleaned'.format(i_episode))
             agent.memory.memory.clear()  # We empty the memory
 
@@ -63,7 +63,7 @@ def maddpg(agent, n_episodes=5000, max_t=1600, num_agents=2):
     return scores_episodes, scores_episodes_deque
 
 
-#%% Load Reacher environment
+#%% Load Tennis environment
 env = UnityEnvironment(file_name="Tennis_Linux/Tennis.x86")
 
 # Get brain information
