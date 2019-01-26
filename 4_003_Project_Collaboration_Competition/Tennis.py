@@ -76,7 +76,7 @@ num_agents = len(env_info.agents)
 #%% DDPG - Agent Training
 
 # Initialize Agent
-agent = Agent(state_size=state_size, action_size=action_size, num_agents=2, random_seed=11)
+agent = Agent(state_size=state_size, action_size=action_size, num_agents=2, random_seed=10)
 
 # Execute DDPG - Learning
 score = maddpg(agent)
