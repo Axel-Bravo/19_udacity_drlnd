@@ -64,7 +64,7 @@ def maddpg(agent, n_episodes=5000, max_t=1600, num_agents=2):
 
 
 #%% Load Tennis environment
-env = UnityEnvironment(file_name="Tennis_Linux/Tennis.x86")
+env = UnityEnvironment(file_name="Tennis_Linux_NoVis/Tennis.x86")
 
 # Get brain information
 brain_name = env.brain_names[0]
@@ -80,7 +80,7 @@ num_agents = len(env_info.agents)
 #%% DDPG - Agent Training
 
 # Initialize Agent
-agent = Agent(state_size=state_size, action_size=action_size, num_agents=2, random_seed=11)
+agent = Agent(state_size=state_size, action_size=action_size, num_agents=2, random_seed=13)
 
 # Execute DDPG - Learning
 score, score_episodes_deque = maddpg(agent)
