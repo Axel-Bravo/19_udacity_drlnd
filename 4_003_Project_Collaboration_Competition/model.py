@@ -6,7 +6,7 @@ import torch.nn.functional as F
 class Actor(nn.Module):
     """Actor (Policy) Model."""
 
-    def __init__(self, state_size, action_size, seed, fc_units_1=64, fc_units_2=64, fc_units_3=32):
+    def __init__(self, state_size, action_size, seed, fc_units_1=64, fc_units_2=32):
         """Initialize parameters and build model.
         Params
         ======
@@ -19,22 +19,19 @@ class Actor(nn.Module):
         super(Actor, self).__init__()
         self.seed = torch.manual_seed(seed)
 
-        self.batch1 = nn.LayerNorm(state_size)
+        self.batch1 = nn.LayerNorm(fc_units_1)
         self.batch2 = nn.LayerNorm(fc_units_2)
-        self.batch3 = nn.LayerNorm(fc_units_3)
+        self.batch3 = nn.LayerNorm(action_size)
 
         self.fc1 = nn.Linear(state_size, fc_units_1)
         self.fc2 = nn.Linear(fc_units_1, fc_units_2)
-        self.fc3 = nn.Linear(fc_units_2, fc_units_3)
-        self.fc4 = nn.Linear(fc_units_3, action_size)
+        self.fc3 = nn.Linear(fc_units_2, action_size)
 
     def forward(self, state):
         """Build an actor (policy) network that maps states -> actions."""
-        x = self.batch1(state)
-        x = F.relu(self.fc1(x))
+        x = self.batch1(F.relu(self.fc1(state)))
         x = self.batch2(F.relu(self.fc2(x)))
         x = self.batch3(F.relu(self.fc3(x)))
-        x = F.relu(self.fc4(x))
 
         return F.tanh(x)
 
@@ -42,7 +39,7 @@ class Actor(nn.Module):
 class Critic(nn.Module):
     """Critic (Value) Model."""
 
-    def __init__(self, state_size, action_size, seed, fcs1_units=128, fc_units_2=64, fc_units_3=64):
+    def __init__(self, state_size, action_size, seed, fcs1_units=64, fc_units_2=64):
         """Initialize parameters and build model.
         Params
         ======
@@ -58,8 +55,7 @@ class Critic(nn.Module):
         self.batch1 = nn.LayerNorm(state_size)
         self.fcs1 = nn.Linear(state_size, fcs1_units)
         self.fc2 = nn.Linear(fcs1_units+action_size, fc_units_2)
-        self.fc3 = nn.Linear(fc_units_2, fc_units_3)
-        self.fc4 = nn.Linear(fc_units_3, 1)
+        self.fc3 = nn.Linear(fc_units_2, 1)
 
     def forward(self, state, action):
         """Build a critic (value) network that maps (state, action) pairs -> Q-values."""
@@ -67,6 +63,6 @@ class Critic(nn.Module):
         xs = F.relu(self.fcs1(x))
         x = torch.cat((xs, action), dim=1)
         x = F.relu(self.fc2(x))
-        x = F.relu(self.fc3(x))
 
-        return self.fc4(x)
+        return self.fc3(x)
+
