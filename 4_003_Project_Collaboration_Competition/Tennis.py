@@ -11,14 +11,15 @@ from _003_maddpg import MADDPG
 from _buffer import ReplayBuffer
 
 
-def run_maddpg(agent, n_episodes=2000, max_t=800, num_agents=2, batch_size=128):
+def run_maddpg(agent, n_episodes=2000, max_t=800, num_agents=2, batch_size=128, seed=1):
     """ MADDPG - Algorithm implementation"""
 
     scores_episodes = []
     scores_episodes_deque = deque(maxlen=100)
 
-    buffer = {'agent_1': ReplayBuffer(int(50 * max_t)),
-              'agent_2': ReplayBuffer(int(50 * max_t))}
+    buffer = {'agent_1': ReplayBuffer(buffer_size=int(50 * max_t), batch_size=batch_size, seed=seed),
+              'agent_2': ReplayBuffer(buffer_size=int(50 * max_t), batch_size=batch_size, seed=seed)
+              }
 
     for i_episode in range(1, n_episodes+1):
         env_info = env.reset(train_mode=True)[brain_name]
@@ -37,12 +38,12 @@ def run_maddpg(agent, n_episodes=2000, max_t=800, num_agents=2, batch_size=128):
 
             # Experience saving
             for enum, experience in enumerate(zip(states, actions, rewards, next_states, dones)):
-                buffer['agent_' + str(enum + 1)].push(experience)
+                buffer['agent_' + str(enum + 1)].add(*experience)
 
             # Update values
             if len(buffer['agent_1']) >= batch_size:
-                agent.learn(buffer['agent_1'].sample(batch_size), 0)
-                agent.learn(buffer['agent_2'].sample(batch_size), 1)
+                agent.learn(buffer['agent_1'].sample(), 0)
+                agent.learn(buffer['agent_2'].sample(), 1)
 
             states = next_states
             scores += rewards
@@ -73,7 +74,7 @@ def run_maddpg(agent, n_episodes=2000, max_t=800, num_agents=2, batch_size=128):
 
 
 #%% Load Tennis environment
-env = UnityEnvironment(file_name="Tennis_Linux/Tennis.x86")
+env = UnityEnvironment(file_name="Tennis_Linux_NoVis/Tennis.x86")
 
 # Get brain information
 brain_name = env.brain_names[0]
