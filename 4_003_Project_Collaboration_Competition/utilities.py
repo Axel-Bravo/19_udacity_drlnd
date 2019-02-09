@@ -1,4 +1,3 @@
-import os
 import torch
 import torch.nn.functional as F
 import torch.distributed as dist
@@ -45,13 +44,6 @@ def average_gradients(model):
         dist.all_reduce(param.grad.data, op=dist.reduce_op.SUM, group=0)
         param.grad.data /= size
 
-# https://github.com/seba-1511/dist_tuto.pth/blob/gh-pages/train_dist.py
-def init_processes(rank, size, fn, backend='gloo'):
-    """ Initialize the distributed environment. """
-    os.environ['MASTER_ADDR'] = '127.0.0.1'
-    os.environ['MASTER_PORT'] = '29500'
-    dist.init_process_group(backend, rank=rank, world_size=size)
-    fn(rank, size)
 
 def onehot_from_logits(logits, eps=0.0):
     """
@@ -98,10 +90,3 @@ def gumbel_softmax(logits, temperature=0.5, hard=False):
         y_hard = onehot_from_logits(y)
         y = (y_hard - y).detach() + y
     return y
-
-"""def main():
-    torch.Tensor()
-    print(onehot_from_logits())
-
-if __name__=='__main__':
-    main()"""
