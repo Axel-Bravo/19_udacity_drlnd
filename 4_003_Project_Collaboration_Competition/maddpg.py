@@ -1,9 +1,16 @@
 from ddpg import DDPGAgent
 import numpy as np
 import torch
-from utilities import soft_update, transpose_to_tensor, transpose_list, proces_samples
+
+
 # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 device = 'cpu'
+
+
+
+def proces_samples(input_list):
+    return torch.from_numpy(np.array(input_list))
+
 
 class MADDPG:
     def __init__(self, discount_factor=0.95, tau=0.02):

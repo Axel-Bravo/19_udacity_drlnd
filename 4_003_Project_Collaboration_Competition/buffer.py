@@ -1,6 +1,8 @@
 from collections import deque
 import random
-from utilities import transpose_list
+
+def transpose_list(mylist):
+    return list(map(list, zip(*mylist)))
 
 
 class ReplayBuffer:
