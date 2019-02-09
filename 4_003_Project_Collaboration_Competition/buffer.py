@@ -4,7 +4,7 @@ from utilities import transpose_list
 
 
 class ReplayBuffer:
-    def __init__(self,size):
+    def __init__(self, size):
         self.size = size
         self.deque = deque(maxlen=self.size)
 

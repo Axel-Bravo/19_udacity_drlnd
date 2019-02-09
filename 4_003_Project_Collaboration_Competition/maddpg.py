@@ -111,6 +111,13 @@ class MADDPG:
         for ddpg_agent in self.maddpg_agent:
             soft_update(ddpg_agent.target_actor, ddpg_agent.actor, self.tau)
             soft_update(ddpg_agent.target_critic, ddpg_agent.critic, self.tau)
+
+    def reset_agents(self):
+        """Reset the noise of the current agents"""
+        for ddpg_agent in self.maddpg_agent:
+            ddpg_agent.reset()
+
+
             
             
             
