@@ -15,6 +15,25 @@ from buffer import ReplayBuffer
 model_dir = 'models/'
 
 
+def save_models(model_dir, maddpg, i_episode):
+    """
+    Saves the maddpg models into the disk
+    :param model_dir: model directory where to save the files
+    :param maddpg: MADDPG instance used on the training procedure
+    :param i_episode: information about the current episode
+    :return: None
+    """
+    save_dict_list = []
+    for i_agent in range(2):
+        save_dict = {'actor_params': maddpg.maddpg_agent[i_agent].actor.state_dict(),
+                     'actor_optim_params': maddpg.maddpg_agent[i_agent].actor_optimizer.state_dict(),
+                     'critic_params': maddpg.maddpg_agent[i_agent].critic.state_dict(),
+                     'critic_optim_params': maddpg.maddpg_agent[i_agent].critic_optimizer.state_dict()}
+        save_dict_list.append(save_dict)
+
+        torch.save(save_dict_list, os.path.join(model_dir, 'i_episode-{}.pt'.format(i_episode)))
+
+
 def execute_maddpg(n_episodes=8000, batch_size=512, n_update_learn=2, noise=2, noise_reduction=0.9999):
     """
     MADDPG - Executiong Algorithm Implementation
@@ -29,15 +48,16 @@ def execute_maddpg(n_episodes=8000, batch_size=512, n_update_learn=2, noise=2, n
     maddpg = MADDPG()
     scores = []
     scores_deque = deque(maxlen=100)
-    buffer = ReplayBuffer(5e4)
+    buffer = ReplayBuffer(int(5e4))
 
     for i_episode in range(1, n_episodes+1):
 
         # 0| Initialization of episode
         env_info = env.reset(train_mode=True)[brain_name]
-        state = env_info.vector_observations # TODO: create a "state_full" method
+        state = env_info.vector_observations
+        state_full = state.ravel(-1)
         i_score = np.zeros(num_agents)
-        maddpg.reset()  # TODO: implement "reset" method for MADDPG
+        maddpg.reset_agents()
 
         # 1| Episode Run
         while True:
@@ -47,7 +67,8 @@ def execute_maddpg(n_episodes=8000, batch_size=512, n_update_learn=2, noise=2, n
             env_info = env.step(actions)[brain_name]
 
             # 1.2| Feedback on action
-            next_state = env_info.vector_observations  # TODO: ojo que next_State no genera "next_obs_full" NEED
+            next_state = env_info.vector_observations
+            next_state_full = next_state.ravel(-1)
             rewards = env_info.rewards
             dones = env_info.local_done
 
@@ -60,7 +81,6 @@ def execute_maddpg(n_episodes=8000, batch_size=512, n_update_learn=2, noise=2, n
             state, state_full = next_state, next_state_full
 
             # 1.5| Update agents
-            # TODO: convertir en funcion
             if len(buffer) > batch_size and i_episode % n_update_learn == 0:
                 for i_agent in range(2):
                     samples = buffer.sample(batch_size)
@@ -80,31 +100,14 @@ def execute_maddpg(n_episodes=8000, batch_size=512, n_update_learn=2, noise=2, n
                                                                         np.mean(scores_deque), np.max(score)))
         # 2.2| Saving models
         if i_episode % 100 == 0:
-            # Todo: convertir en funcion
-            save_dict_list = []
-            for i_agent in range(2):
-                save_dict = {'actor_params': maddpg.maddpg_agent[i_agent].actor.state_dict(),
-                             'actor_optim_params': maddpg.maddpg_agent[i_agent].actor_optimizer.state_dict(),
-                             'critic_params': maddpg.maddpg_agent[i_agent].critic.state_dict(),
-                             'critic_optim_params': maddpg.maddpg_agent[i_agent].critic_optimizer.state_dict()}
-                save_dict_list.append(save_dict)
-
-                torch.save(save_dict_list, os.path.join(model_dir, 'i_episode-{}.pt'.format(i_episode)))
+            save_models(model_dir, maddpg, i_episode)
 
         # 3| Completion condition
-            if np.mean(scores_deque) > 0.5:
-                save_dict_list = []
-                for i_agent in range(2):
-                    save_dict = {'actor_params': maddpg.maddpg_agent[i_agent].actor.state_dict(),
-                                 'actor_optim_params': maddpg.maddpg_agent[i_agent].actor_optimizer.state_dict(),
-                                 'critic_params': maddpg.maddpg_agent[i_agent].critic.state_dict(),
-                                 'critic_optim_params': maddpg.maddpg_agent[i_agent].critic_optimizer.state_dict()}
-                    save_dict_list.append(save_dict)
+        if np.mean(scores_deque) > 0.5:
+            save_models(model_dir, maddpg, i_episode)
+            print('\rEpisode employed for completing the challenge {}'.format(i_episode))
 
-                    torch.save(save_dict_list, os.path.join(model_dir, 'i_episode-{}.pt'.format(i_episode)))
-                print('\rEpisode employed for completing the challenge {}'.format(i_episode))
-
-                break
+            break
 
     return scores, scores_deque
 
