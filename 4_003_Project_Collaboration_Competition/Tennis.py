@@ -55,7 +55,7 @@ def execute_maddpg(n_episodes=8000, batch_size=512, n_update_learn=2, noise=2, n
         # 0| Initialization of episode
         env_info = env.reset(train_mode=True)[brain_name]
         state = env_info.vector_observations
-        state_full = state.ravel(-1) # TODO: a lo mejor se quita
+        state_full = [state.ravel(-1), state.ravel(-1)]
         i_score = np.zeros(num_agents)
         maddpg.reset_agents()
 
@@ -68,7 +68,7 @@ def execute_maddpg(n_episodes=8000, batch_size=512, n_update_learn=2, noise=2, n
 
             # 1.2| Feedback on action
             next_state = env_info.vector_observations
-            next_state_full = next_state.ravel(-1)
+            next_state_full = [next_state.ravel(-1), next_state.ravel(-1)]
             rewards = env_info.rewards
             dones = env_info.local_done
 
