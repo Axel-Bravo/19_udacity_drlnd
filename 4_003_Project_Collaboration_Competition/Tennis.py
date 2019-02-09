@@ -8,35 +8,19 @@ import torch
 from unityagents import UnityEnvironment
 
 # Developed imports
-from maddpg import MADDPG
+from ddpg import DDGP
 from buffer import ReplayBuffer
 
 # Parameters
 model_dir = 'models/'
 
 
-def save_models(model_dir, maddpg, i_episode):
+def execute_maddpg(state_size, action_size, random_seed, n_episodes=8000, batch_size=512, n_update_learn=2, noise=2, noise_reduction=0.9999):
     """
-    Saves the maddpg models into the disk
-    :param model_dir: model directory where to save the files
-    :param maddpg: MADDPG instance used on the training procedure
-    :param i_episode: information about the current episode
-    :return: None
-    """
-    save_dict_list = []
-    for i_agent in range(2):
-        save_dict = {'actor_params': maddpg.maddpg_agent[i_agent].actor.state_dict(),
-                     'actor_optim_params': maddpg.maddpg_agent[i_agent].actor_optimizer.state_dict(),
-                     'critic_params': maddpg.maddpg_agent[i_agent].critic.state_dict(),
-                     'critic_optim_params': maddpg.maddpg_agent[i_agent].critic_optimizer.state_dict()}
-        save_dict_list.append(save_dict)
+    MADDPG - Executiong Algorithm Implementation:
+      - Each agent will be independet from the others
+        - No shared memory
 
-        torch.save(save_dict_list, os.path.join(model_dir, 'i_episode-{}.pt'.format(i_episode)))
-
-
-def execute_maddpg(n_episodes=8000, batch_size=512, n_update_learn=2, noise=2, noise_reduction=0.9999):
-    """
-    MADDPG - Executiong Algorithm Implementation
     :param n_episodes: number of episodes the algorithm will be trained
     :param batch_size: batch size of each learning iteration
     :param n_update_learn: number of episodes between each learning phase
@@ -44,8 +28,11 @@ def execute_maddpg(n_episodes=8000, batch_size=512, n_update_learn=2, noise=2, n
     :param noise_reduction: noise reduction coefficient
     :return: the training process results
     """
-    # 1| Initialize
-    maddpg = MADDPG()
+    # 1| Initialize agents
+    agent_0 = DDGP(name='agent_1', state_size=state_size, action_size=action_size, random_seed=random_seed)
+    agent_1 = DDGP(name='agent_2', state_size=state_size, action_size=action_size, random_seed=random_seed + 1)
+    agents = [agent_0, agent_1]
+
     scores = []
     scores_deque = deque(maxlen=100)
     buffer = ReplayBuffer(int(5e4))
@@ -54,16 +41,16 @@ def execute_maddpg(n_episodes=8000, batch_size=512, n_update_learn=2, noise=2, n
 
         # 0| Initialization of episode
         env_info = env.reset(train_mode=True)[brain_name]
-        state = env_info.vector_observations
+        states = env_info.vector_observations
         state_full = [state.ravel(-1), state.ravel(-1)]
         i_score = np.zeros(num_agents)
-        maddpg.reset_agents()
+        for agent in agents:
+            agent.reset()
 
         # 1| Episode Run
         while True:
             # 1.1| Agent decision and interaction
-            actions = maddpg.act(state, noise=noise)
-            noise *= noise_reduction
+            actions = [agent.act(state) for agent, state in zip(agents, states)]
             env_info = env.step(actions)[brain_name]
 
             # 1.2| Feedback on action
@@ -127,7 +114,7 @@ num_agents = len(env_info.agents)
 
 
 #%% MADDPG - Agent Training
-score, score_episodes_deque = execute_maddpg()
+score, score_episodes_deque = execute_maddpg(state_size=state_size, action_size=action_size, random_seed=10)
 
 # Plot results
 fig = plt.figure()
