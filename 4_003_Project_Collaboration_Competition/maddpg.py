@@ -1,13 +1,7 @@
-# main code that contains the neural network setup
-# policy + critic updates
-# see ddpg.py for other details in the network
-
 from ddpg import DDPGAgent
 import torch
 from utilities import soft_update, transpose_to_tensor, transpose_list
-#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-device = 'cpu'
-
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class MADDPG:
@@ -15,9 +9,8 @@ class MADDPG:
         super(MADDPG, self).__init__()
 
         # critic input = obs_full + actions = 14+2+2+2=20
-        self.maddpg_agent = [DDPGAgent(14, 16, 8, 2, 20, 32, 16), 
-                             DDPGAgent(14, 16, 8, 2, 20, 32, 16), 
-                             DDPGAgent(14, 16, 8, 2, 20, 32, 16)]
+        self.maddpg_agent = [DDPGAgent(24, 64, 64, 2, 48, 128, 64),
+                             DDPGAgent(24, 64, 64, 2, 48, 128, 64)]
         
         self.discount_factor = discount_factor
         self.tau = tau
