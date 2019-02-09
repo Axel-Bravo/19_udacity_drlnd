@@ -4,12 +4,18 @@ import torch.distributed as dist
 from torch.autograd import Variable
 import numpy as np
 
+
 def transpose_list(mylist):
     return list(map(list, zip(*mylist)))
+
 
 def transpose_to_tensor(input_list):
     make_tensor = lambda x: torch.tensor(x, dtype=torch.float)
     return list(map(make_tensor, zip(*input_list)))
+
+
+def proces_samples(input_list):
+    return torch.from_numpy(np.array(input_list))
 
 
 # https://github.com/ikostrikov/pytorch-ddpg-naf/blob/master/ddpg.py#L11

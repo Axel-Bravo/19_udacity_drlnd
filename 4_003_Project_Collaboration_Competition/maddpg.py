@@ -1,9 +1,8 @@
 from ddpg import DDPGAgent
 import numpy as np
 import torch
-from utilities import soft_update, transpose_to_tensor, transpose_list
-#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+from utilities import soft_update, transpose_to_tensor, transpose_list, proces_samples
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 device = 'cpu'
 
 class MADDPG:
@@ -38,13 +37,10 @@ class MADDPG:
         target_actions = [ddpg_agent.target_act(obs, noise) for ddpg_agent, obs in zip(self.maddpg_agent, obs_all_agents)]
         return target_actions
 
-    def update(self, samples, agent_number, logger):
+    def update(self, samples, agent_number):
         """update the critics and actors of all the agents """
 
-        # need to transpose each element of the samples
-        # to flip obs[parallel_agent][agent_number] to
-        # obs[agent_number][parallel_agent]
-        obs, obs_full, action, reward, next_obs, next_obs_full, done = map(transpose_to_tensor, samples)
+        obs, obs_full, action, reward, next_obs, next_obs_full, done = map(proces_samples, samples)
 
         obs_full = torch.stack(obs_full)
         next_obs_full = torch.stack(next_obs_full)
@@ -93,12 +89,6 @@ class MADDPG:
         #torch.nn.utils.clip_grad_norm_(agent.actor.parameters(),0.5)
         agent.actor_optimizer.step()
 
-        al = actor_loss.cpu().detach().item()
-        cl = critic_loss.cpu().detach().item()
-        logger.add_scalars('agent%i/losses' % agent_number,
-                           {'critic loss': cl,
-                            'actor_loss': al},
-                           self.iter)
 
     def update_targets(self):
         """soft update targets"""

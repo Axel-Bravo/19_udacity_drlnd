@@ -70,7 +70,7 @@ def execute_maddpg(n_episodes=8000, batch_size=512, n_update_learn=2, noise=2, n
             next_state = env_info.vector_observations
             next_state_full = [next_state.ravel(-1), next_state.ravel(-1)]
             rewards = env_info.rewards
-            dones = env_info.local_done
+            dones = [float(done) for done in env_info.local_done]  # Pytorch bool non-compatible
 
             # 1.3| Experience saving
             transition = (state, state_full, actions, rewards, next_state, next_state_full, dones) # TODO: ver como devuelven los valores si numpy o torch(no torch,...)
@@ -93,11 +93,11 @@ def execute_maddpg(n_episodes=8000, batch_size=512, n_update_learn=2, noise=2, n
 
         # 2| Episode post-processing
         # 2.1| Scoring
-        scores.append(np.max(score))
-        scores_deque.append(np.max(score))
+        scores.append(np.max(i_score))
+        scores_deque.append(np.max(i_score))
 
         print('Episode {}\tAverage Score: {:.2f}\tScore: {:.2f}'.format(i_episode,
-                                                                        np.mean(scores_deque), np.max(score)))
+                                                                        np.mean(scores_deque), np.max(i_score)))
         # 2.2| Saving models
         if i_episode % 100 == 0:
             save_models(model_dir, maddpg, i_episode)
