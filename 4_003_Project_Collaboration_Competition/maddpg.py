@@ -42,16 +42,13 @@ class MADDPG:
 
         obs, obs_full, action, reward, next_obs, next_obs_full, done = map(proces_samples, samples)
 
-        obs_full = torch.stack(obs_full)
-        next_obs_full = torch.stack(next_obs_full)
-        
         agent = self.maddpg_agent[agent_number]
         agent.critic_optimizer.zero_grad()
 
         #critic loss = batch mean of (y- Q(s,a) from target network)^2
         #y = reward of this timestep + discount * Q(st+1,at+1) from target network
         target_actions = self.target_act(next_obs)
-        target_actions = torch.cat(target_actions, dim=1)
+        target_actions = torch.cat(target_actions, dim=-1)
         
         target_critic_input = torch.cat((next_obs_full.t(),target_actions), dim=1).to(device)
         
