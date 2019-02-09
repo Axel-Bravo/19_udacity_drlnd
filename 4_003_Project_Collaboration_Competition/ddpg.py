@@ -8,13 +8,14 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 
-BUFFER_SIZE = int(1e4)    # replay buffer size
+BUFFER_SIZE = int(1e6)    # replay buffer size
 BATCH_SIZE = 512          # minibatch size
 GAMMA = 0.99              # discount factor
 TAU = 1e-3                # for soft update of target parameters
 LR_ACTOR = 1e-4           # learning rate of the actor
-LR_CRITIC = 1e-3          # learning rate of the critic
+LR_CRITIC = 5e-4          # learning rate of the critic
 WEIGHT_DECAY = 0.0001     # L2 weight decay
+UPDATE_EVERY = 20       # Number of iterations between learnings
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -51,7 +52,11 @@ class Agent(object):
         self.noise = OUNoise((num_agents, action_size), random_seed)
 
         # Replay memory
-        self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, random_seed)
+        self.memory = ReplayBuffer(BUFFER_SIZE, BATCH_SIZE, random_seed)
+
+        # Step memory
+        self.step_mem = 0
+        self.train = False
 
         # Exploration coefficient
         self.exploration = 1.0
@@ -60,6 +65,22 @@ class Agent(object):
         """Inscribes in the memory the experiences"""
 
         self.memory.add(state, action, reward, next_tate, done)
+
+    def trigger_learn(self):
+        self.step_mem = 0
+        self.train = False
+        self.exploration *= 0.95
+
+        """Triggers learning procedure each """
+        # Learn, if enough samples are available in memory
+        if len(self.memory) > BATCH_SIZE:
+            self.learn()
+
+    def update_counter(self):
+        self.step_mem += 1
+
+        if self.step_mem / UPDATE_EVERY == 1:
+            self.train = True
 
     def act(self, states, add_noise=True):
         """Returns actions for given state as per current policy."""
@@ -93,50 +114,47 @@ class Agent(object):
             gamma (float): discount factor
         """
 
-        if len(self.memory) > BATCH_SIZE:
-            self.exploration *= 0.999
+        self.exploration *= 0.999
 
-            experience = self.memory.sample()
-            states, actions, rewards, next_states, dones = experience
+        experience = self.memory.sample()
+        states, actions, rewards, next_states, dones = experience
 
-            for agent in range(self.num_agents):
-                state = states[(agent*BATCH_SIZE):((agent+1)*BATCH_SIZE)]
-                action = actions[(agent*BATCH_SIZE):((agent+1)*BATCH_SIZE)]
-                reward = rewards[:, agent]
-                next_state = next_states[(agent*BATCH_SIZE):((agent+1)*BATCH_SIZE)]
-                done = dones[:, agent]
+        for agent in range(self.num_agents):
+            state = states[(agent*BATCH_SIZE):((agent+1)*BATCH_SIZE)]
+            action = actions[(agent*BATCH_SIZE):((agent+1)*BATCH_SIZE)]
+            reward = rewards[:, agent]
+            next_state = next_states[(agent*BATCH_SIZE):((agent+1)*BATCH_SIZE)]
+            done = dones[:, agent]
 
-                # ---------------------------- update critic ---------------------------- #
-                # Get predicted next-state actions and Q values from target models
-                actions_next = self.actor_target(next_state)
-                Q_targets_next = self.critic_target(next_state, actions_next)
-                # Compute Q targets for current states (y_i)
-                Q_targets = reward + (GAMMA * Q_targets_next * (1 - done))
-                # Compute critic loss
-                Q_expected = self.critic_local(state, action)
-                critic_loss = F.mse_loss(Q_expected, Q_targets)
-                # Minimize the loss
-                self.critic_optimizer.zero_grad()
-                critic_loss.backward()
-                torch.nn.utils.clip_grad_norm(self.critic_local.parameters(), 1)  # Gradient clipping
-                self.critic_optimizer.step()
+            # ---------------------------- update critic ---------------------------- #
+            # Get predicted next-state actions and Q values from target models
+            actions_next = self.actor_target(next_state)
+            Q_targets_next = self.critic_target(next_state, actions_next)
+            # Compute Q targets for current states (y_i)
+            Q_targets = reward + (GAMMA * Q_targets_next * (1 - done))
+            # Compute critic loss
+            Q_expected = self.critic_local(state, action)
+            critic_loss = F.mse_loss(Q_expected, Q_targets)
+            # Minimize the loss
+            self.critic_optimizer.zero_grad()
+            critic_loss.backward()
+            torch.nn.utils.clip_grad_norm(self.critic_local.parameters(), 1)  # Gradient clipping
+            self.critic_optimizer.step()
 
-                # ---------------------------- update actor ---------------------------- #
-                # Compute actor loss
-                actions_pred = self.actor_local(state)
-                actor_loss = -self.critic_local(state, actions_pred).mean()
-                # Minimize the loss
-                self.actor_optimizer.zero_grad()
-                actor_loss.backward()
-                torch.nn.utils.clip_grad_norm(self.actor_local.parameters(), 1)  # Gradient clipping
-                self.actor_optimizer.step()
+            # ---------------------------- update actor ---------------------------- #
+            # Compute actor loss
+            actions_pred = self.actor_local(state)
+            actor_loss = -self.critic_local(state, actions_pred).mean()
+            # Minimize the loss
+            self.actor_optimizer.zero_grad()
+            actor_loss.backward()
+            torch.nn.utils.clip_grad_norm(self.actor_local.parameters(), 1)  # Gradient clipping
+            self.actor_optimizer.step()
 
-            # ----------------------- update target networks ----------------------- #
-            self.soft_update(self.critic_local, self.critic_target, TAU)
-            self.soft_update(self.actor_local, self.actor_target, TAU)
+        # ----------------------- update target networks ----------------------- #
+        self.soft_update(self.critic_local, self.critic_target, TAU)
+        self.soft_update(self.actor_local, self.actor_target, TAU)
 
-        else:  # Not enough memory buffer size
-            pass
 
     def soft_update(self, local_model, target_model, tau):
         """Soft update model parameters.
@@ -178,14 +196,13 @@ class OUNoise:
 class ReplayBuffer:
     """Fixed-size buffer to store experience tuples."""
 
-    def __init__(self, action_size, buffer_size, batch_size, seed):
+    def __init__(self, buffer_size, batch_size, seed):
         """Initialize a ReplayBuffer object.
         Params
         ======
             buffer_size (int): maximum size of buffer
             batch_size (int): size of each training batch
         """
-        self.action_size = action_size
         self.memory = deque(maxlen=buffer_size)  # internal memory (deque)
         self.batch_size = batch_size
         self.experience = namedtuple("Experience", field_names=["state", "action", "reward", "next_state", "done"])

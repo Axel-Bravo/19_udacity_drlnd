@@ -7,7 +7,7 @@ from unityagents import UnityEnvironment
 from ddpg import Agent
 
 
-def maddpg(agent, n_episodes=5000, max_t=1600, num_agents=2):
+def maddpg(agent, n_episodes=5000, max_t=1600, num_agents=2, consec_learn_iter=6):
     """ DDPG - Algorithm implementation"""
     scores_episodes = []
     scores_episodes_deque = deque(maxlen=100)
@@ -28,8 +28,14 @@ def maddpg(agent, n_episodes=5000, max_t=1600, num_agents=2):
             rewards = env_info.rewards
             dones = env_info.local_done
 
+            # Experience saving
             agent.memorize(state, actions, rewards, next_state, dones)
-            agent.learn()
+            agent.update_counter()
+
+            # Update values
+            if agent.train:
+                for _ in range(consec_learn_iter):
+                    agent.trigger_learn()
 
             state = next_state
             score += rewards
@@ -80,7 +86,7 @@ num_agents = len(env_info.agents)
 #%% DDPG - Agent Training
 
 # Initialize Agent
-agent = Agent(state_size=state_size, action_size=action_size, num_agents=2, random_seed=13)
+agent = Agent(state_size=state_size, action_size=action_size, num_agents=2, random_seed=10)
 
 # Execute DDPG - Learning
 score, score_episodes_deque = maddpg(agent)
