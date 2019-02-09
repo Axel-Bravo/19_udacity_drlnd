@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torch
 from unityagents import UnityEnvironment
-from ddpg import Agent
+from ddpg import DDPG_Agent
 
 
 def maddpg(agent, n_episodes=5000, max_t=1600, num_agents=2, consec_learn_iter=6):
@@ -86,7 +86,7 @@ num_agents = len(env_info.agents)
 #%% DDPG - Agent Training
 
 # Initialize Agent
-agent = Agent(state_size=state_size, action_size=action_size, num_agents=2, random_seed=10)
+agent = DDPG_Agent(state_size=state_size, action_size=action_size, num_agents=2, random_seed=10)
 
 # Execute DDPG - Learning
 score, score_episodes_deque = maddpg(agent)

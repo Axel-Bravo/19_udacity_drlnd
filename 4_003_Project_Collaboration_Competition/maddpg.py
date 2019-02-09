@@ -1,18 +1,22 @@
-# main code that contains the neural network setup
-# policy + critic updates
-# see ddpg.py for other details in the network
-
-from ddpg import DDPGAgent
+from ddpg import DDPG_Agent
 import torch
-from utilities import soft_update, transpose_to_tensor, transpose_list
 
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-device = 'cpu'
+# Algorithm Hyperparameters
+BUFFER_SIZE = int(1e6)    # replay buffer size
+BATCH_SIZE = 512          # minibatch size
+GAMMA = 0.99              # discount factor
+TAU = 1e-3                # for soft update of target parameters
+LR_ACTOR = 1e-4           # learning rate of the actor
+LR_CRITIC = 5e-4          # learning rate of the critic
+WEIGHT_DECAY = 0.0001     # L2 weight decay
+UPDATE_EVERY = 2          # Number of iterations between learning
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-class MADDPG:
-    def __init__(self, discount_factor=0.95, tau=0.02):
-        super(MADDPG, self).__init__()
+class MADDPG_Agent():
+    def __init__(self, state_size, action_size, num_agents, random_seed,  discount_factor=0.95, tau=0.02):
+        super(MADDPG_Agent, self).__init__()
 
         # critic input = obs_full + actions = 14+2+2+2=20
         self.maddpg_agent = [DDPGAgent(14, 16, 8, 2, 20, 32, 16),
