@@ -1,8 +1,10 @@
 from ddpg import DDPGAgent
+import numpy as np
 import torch
 from utilities import soft_update, transpose_to_tensor, transpose_list
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+device = 'cpu'
 
 class MADDPG:
     def __init__(self, discount_factor=0.95, tau=0.02):
@@ -28,7 +30,7 @@ class MADDPG:
 
     def act(self, obs_all_agents, noise=0.0):
         """get actions from all agents in the MADDPG object"""
-        actions = [agent.act(obs, noise) for agent, obs in zip(self.maddpg_agent, obs_all_agents)]
+        actions = np.array([agent.act(obs, noise) for agent, obs in zip(self.maddpg_agent, obs_all_agents)])
         return actions
 
     def target_act(self, obs_all_agents, noise=0.0):

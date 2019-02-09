@@ -31,7 +31,7 @@ class Network(nn.Module):
     def forward(self, x):
         if self.actor:
             # return a vector of the force
-            h1 = self.nonlin(self.fc1(x))
+            h1 = self.nonlin(self.fc1(x.float()))
 
             h2 = self.nonlin(self.fc2(h1))
             h3 = (self.fc3(h2))

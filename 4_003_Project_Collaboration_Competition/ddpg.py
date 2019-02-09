@@ -7,7 +7,6 @@ from torch.optim import Adam
 import torch
 import numpy as np
 
-
 # add OU noise for exploration
 from OUNoise import OUNoise
 
@@ -25,7 +24,6 @@ class DDPGAgent:
 
         self.noise = OUNoise(out_actor, scale=1.0 )
 
-        
         # initialize targets same as original networks
         hard_update(self.target_actor, self.actor)
         hard_update(self.target_critic, self.critic)
@@ -33,15 +31,16 @@ class DDPGAgent:
         self.actor_optimizer = Adam(self.actor.parameters(), lr=lr_actor)
         self.critic_optimizer = Adam(self.critic.parameters(), lr=lr_critic, weight_decay=1.e-5)
 
-
     def act(self, obs, noise=0.0):
-        obs = obs.to(device)
-        action = self.actor(obs) + noise*self.noise.noise()
+        obs = torch.from_numpy(obs).float().to(device)
+        self.actor.eval()
+        action = self.actor(obs).cpu().data.numpy() + noise*self.noise.noise().numpy()
+        self.actor.train()
+
         return action
 
     def reset(self):
         self.noise.reset()
-
 
     def target_act(self, obs, noise=0.0):
         obs = obs.to(device)

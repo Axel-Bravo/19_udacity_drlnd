@@ -55,7 +55,7 @@ def execute_maddpg(n_episodes=8000, batch_size=512, n_update_learn=2, noise=2, n
         # 0| Initialization of episode
         env_info = env.reset(train_mode=True)[brain_name]
         state = env_info.vector_observations
-        state_full = state.ravel(-1)
+        state_full = state.ravel(-1) # TODO: a lo mejor se quita
         i_score = np.zeros(num_agents)
         maddpg.reset_agents()
 
@@ -73,7 +73,7 @@ def execute_maddpg(n_episodes=8000, batch_size=512, n_update_learn=2, noise=2, n
             dones = env_info.local_done
 
             # 1.3| Experience saving
-            transition = (state, state_full, actions, rewards, next_state, next_state_full, dones)
+            transition = (state, state_full, actions, rewards, next_state, next_state_full, dones) # TODO: ver como devuelven los valores si numpy o torch(no torch,...)
             buffer.push(transition)
 
             # 1.4| Update values
