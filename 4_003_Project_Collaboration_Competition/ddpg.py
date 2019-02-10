@@ -136,11 +136,11 @@ class DDGP(object):
         # ---------------------------- update critic ---------------------------- #
         # Get predicted next-state actions and Q values from target models
         actions_next = self.actor_target(next_state)
-        Q_targets_next = self.critic_target(next_full_state, actions_next)
+        Q_targets_next = self.critic_target(next_state, actions_next)
         # Compute Q targets for current states (y_i)
         Q_targets = reward + (self.gamma * Q_targets_next * (1 - done))
         # Compute critic loss
-        Q_expected = self.critic_local(full_state, action)
+        Q_expected = self.critic_local(state, action)
         critic_loss = F.mse_loss(Q_expected, Q_targets)
         # Minimize the loss
         self.critic_optimizer.zero_grad()
@@ -151,7 +151,7 @@ class DDGP(object):
         # ---------------------------- update actor ---------------------------- #
         # Compute actor loss
         actions_pred = self.actor_local(state)
-        actor_loss = -self.critic_local(full_state, actions_pred).mean()
+        actor_loss = -self.critic_local(state, actions_pred).mean()
         # Minimize the loss
         self.actor_optimizer.zero_grad()
         actor_loss.backward()

@@ -52,8 +52,8 @@ class Critic(nn.Module):
         super(Critic, self).__init__()
         self.seed = torch.manual_seed(seed)
 
-        self.batch1 = nn.LayerNorm(state_size*2)
-        self.fcs1 = nn.Linear(state_size*2, fcs1_units)
+        self.batch1 = nn.LayerNorm(state_size)
+        self.fcs1 = nn.Linear(state_size, fcs1_units)
         self.fc2 = nn.Linear(fcs1_units+action_size, fc_units_2)
         self.fc3 = nn.Linear(fc_units_2, 1)
 
