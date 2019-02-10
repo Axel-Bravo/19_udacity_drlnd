@@ -54,7 +54,7 @@ def execute_maddpg(state_size, action_size, random_seed, n_episodes=8000, min_re
         # 2.0| Initialization of episode
         env_info = env.reset(train_mode=True)[brain_name]
         states = env_info.vector_observations
-        state_full = np.array([states.ravel(-1), states.ravel(-1)])
+        full_states = [states.ravel(-1), states.ravel(-1)]
         i_score = np.zeros(2)
 
         for agent in agents:
@@ -62,34 +62,27 @@ def execute_maddpg(state_size, action_size, random_seed, n_episodes=8000, min_re
 
         # 2.1| Episode Run
         while True:
-            # 1.1| Agent decision and interaction
+            # 2.1.1| Agent decision and interaction
             actions = [agent.act(state) for agent, state in zip(agents, states)]
             env_info = env.step(actions)[brain_name]
 
-            # 1.2| Feedback on action
-            next_state = env_info.vector_observations
-            next_state_full = np.array([next_state.ravel(-1), next_state.ravel(-1)])
+            # 2.1.2| Feedback on action
+            next_states = env_info.vector_observations
+            next_full_states = [next_states.ravel(-1), next_states.ravel(-1)]
             rewards = env_info.rewards
             dones = env_info.local_done
 
-            # 1.3| Experience saving
-            transition = (state, state_full, actions, rewards, next_state, next_state_full, dones) # TODO: ver como devuelven los valores si numpy o torch(no torch,...)
+            # 2.1.3| Experience saving
+            for state, full_state, action, reward, next_state, next_full_state, done, agent in zip(
+                    states, full_states, actions, rewards, next_states, next_full_states, dones, agents):
+                agent.memorize(state, full_state, action, reward, next_state, next_full_state, done)
+                agent.update_counter()
 
-
-            # 1.4| Update values
+            # 2.1.4| Update values
             i_score += rewards
-            state, state_full = next_state, next_state_full
+            state, state_full = next_states, next_state_full
 
-            # 1.5| Update agents
-            """
-            if len(buffer) > batch_size and i_episode % n_update_learn == 0:
-                for i_agent in range(2):
-                    samples = buffer.sample(batch_size)
-                    maddpg.update(samples, i_agent)
-                maddpg.update_targets()  # soft update the target network towards the actual networks
-            """
-
-            # 1.6| Episode ending
+            # 2.1.5| Episode ending
             if np.any(dones):
                 break
 
