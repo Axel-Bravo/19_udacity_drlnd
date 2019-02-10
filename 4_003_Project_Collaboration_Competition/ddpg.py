@@ -130,25 +130,15 @@ class DDGP(object):
             experiences (Tuple[torch.Tensor]): tuple of (s, a, r, s', done) tuples
             gamma (float): discount factor
         """
-
-        self.exploration *= 0.999
-
         experience = self.memory.sample()
-        states, actions, rewards, next_states, dones = experience
-
-        # TODO: arreglar
-        state = states[(agent*BATCH_SIZE):((agent+1)*BATCH_SIZE)]
-        action = actions[(agent*BATCH_SIZE):((agent+1)*BATCH_SIZE)]
-        reward = rewards[:, agent]
-        next_state = next_states[(agent*BATCH_SIZE):((agent+1)*BATCH_SIZE)]
-        done = dones[:, agent]
+        state, full_state, action, reward, next_state, next_full_state, done = experience
 
         # ---------------------------- update critic ---------------------------- #
         # Get predicted next-state actions and Q values from target models
         actions_next = self.actor_target(next_state)
         Q_targets_next = self.critic_target(next_state, actions_next)
         # Compute Q targets for current states (y_i)
-        Q_targets = reward + (GAMMA * Q_targets_next * (1 - done))
+        Q_targets = reward + (self.gamma * Q_targets_next * (1 - done))
         # Compute critic loss
         Q_expected = self.critic_local(state, action)
         critic_loss = F.mse_loss(Q_expected, Q_targets)
