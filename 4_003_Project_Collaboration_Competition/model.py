@@ -6,7 +6,7 @@ import torch.nn.functional as F
 class Actor(nn.Module):
     """Actor (Policy) Model."""
 
-    def __init__(self, state_size, action_size, seed, fc_units_1=64, fc_units_2=32):
+    def __init__(self, state_size, action_size, seed, fc_units_1=64, fc_units_2=63):
         """Initialize parameters and build model.
         Params
         ======
@@ -39,7 +39,7 @@ class Actor(nn.Module):
 class Critic(nn.Module):
     """Critic (Value) Model."""
 
-    def __init__(self, state_size, action_size, seed, fcs1_units=64, fc_units_2=64):
+    def __init__(self, state_size, action_size, seed, fcs1_units=128, fc_units_2=128):
         """Initialize parameters and build model.
         Params
         ======
@@ -52,8 +52,8 @@ class Critic(nn.Module):
         super(Critic, self).__init__()
         self.seed = torch.manual_seed(seed)
 
-        self.batch1 = nn.LayerNorm(state_size)
-        self.fcs1 = nn.Linear(state_size, fcs1_units)
+        self.batch1 = nn.LayerNorm(state_size*2)
+        self.fcs1 = nn.Linear(state_size*2, fcs1_units)
         self.fc2 = nn.Linear(fcs1_units+action_size, fc_units_2)
         self.fc3 = nn.Linear(fc_units_2, 1)
 
