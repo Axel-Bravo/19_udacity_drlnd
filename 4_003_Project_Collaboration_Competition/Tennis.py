@@ -79,29 +79,34 @@ def execute_maddpg(state_size, action_size, random_seed, n_episodes=8000, min_re
                 agent.update_counter()
 
             # 2.1.4| Update values
+            for agent in agents:
+                if agent.train:
+                    for learn_iter in range(agent.consec_learn_iter):
+                        agent.trigger_learn()
+
+            states, full_states = next_states, next_full_states
             i_score += rewards
-            state, state_full = next_states, next_state_full
 
             # 2.1.5| Episode ending
             if np.any(dones):
                 break
 
-        # 2| Episode post-processing
-        # 2.1| Scoring
+        # 2.2| Episode post-processing
+        # 2.2.1| Scoring
         scores.append(np.max(i_score))
         scores_deque.append(np.max(i_score))
 
         print('Episode {}\tAverage Score: {:.2f}\tScore: {:.2f}'.format(i_episode,
                                                                         np.mean(scores_deque), np.max(i_score)))
-        # 2.2| Saving models
+        # 2.2.2| Saving models
         if i_episode % 500 == 0:
             for agent in agents:
-                agent.save(save_path= model_dir, iteration=i_episode)
+                agent.save(save_path=model_dir, iteration=i_episode)
 
-        # 3| Completion condition
+        # 2.2.3| Completion condition
         if np.mean(scores_deque) > 0.5:
             for agent in agents:
-                agent.save(save_path= model_dir, iteration=i_episode)
+                agent.save(save_path=model_dir, iteration=i_episode)
             print('\rEpisode employed for completing the challenge {}'.format(i_episode))
 
             break
