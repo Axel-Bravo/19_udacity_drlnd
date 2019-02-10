@@ -1,6 +1,5 @@
 #%% Imports & Function declaration
 # Standard imports
-import os
 from collections import deque
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,45 +8,59 @@ from unityagents import UnityEnvironment
 
 # Developed imports
 from ddpg import DDGP
-from buffer import ReplayBuffer
 
 # Parameters
 model_dir = 'models/'
 
 
-def execute_maddpg(state_size, action_size, random_seed, n_episodes=8000, batch_size=512, n_update_learn=2, noise=2, noise_reduction=0.9999):
+def execute_maddpg(state_size, action_size, random_seed, n_episodes=8000, min_req_exp=200,
+                   buffer_size=int(1e4),batch_size=512, consec_learn_iter=2, learn_every=4,
+                   lr_actor=1e-4, lr_critic=1e-3,):
     """
     MADDPG - Executiong Algorithm Implementation:
-      - Each agent will be independet from the others
-        - No shared memory
-
-    :param n_episodes: number of episodes the algorithm will be trained
-    :param batch_size: batch size of each learning iteration
-    :param n_update_learn: number of episodes between each learning phase
-    :param noise: noise initial value
-    :param noise_reduction: noise reduction coefficient
-    :return: the training process results
+      - Each agent will be independent from the others
+      - The Critic is trained with full "state" information
+      - No shared "ReplayBuffer" for each agent
+    :param state_size: number of dimensions the state observed by the agent
+    :param action_size: number of dimensions for the action executed by the agent
+    :param random_seed: random seed number, for reproducibility
+    :param n_episodes: number of episodes the algorithm will train
+    :param min_req_exp: minimum number of episodes the algorithm needs to experiment before starting to learn
+    :param buffer_size: sie of the experience replay buffer
+    :param batch_size: number of samples to be trained the networks on at each step
+    :param consec_learn_iter: number of consecutive learning iterations
+    :param learn_every: steps in a game before triggering the learning procedure
+    :param lr_actor: actor's learning rate
+    :param lr_critic: critic's learning rate
+    :return: results obtained during the training procedure
     """
-    # 1| Initialize agents
-    agent_0 = DDGP(name='agent_1', state_size=state_size, action_size=action_size, random_seed=random_seed)
-    agent_1 = DDGP(name='agent_2', state_size=state_size, action_size=action_size, random_seed=random_seed + 1)
+    # 1| Initialization
+    # 1.1 Agents
+    agent_0 = DDGP(name='agent_0', state_size=state_size, action_size=action_size, random_seed=random_seed,
+                   buffer_size=buffer_size, batch_size=batch_size, consec_learn_iter=consec_learn_iter,
+                   learn_every=learn_every, lr_actor=lr_actor, lr_critic=lr_critic)
+    agent_1 = DDGP(name='agent_1', state_size=state_size, action_size=action_size, random_seed=random_seed + 1,
+                   buffer_size=buffer_size, batch_size=batch_size, consec_learn_iter=consec_learn_iter,
+                   learn_every=learn_every, lr_actor=lr_actor, lr_critic=lr_critic)
     agents = [agent_0, agent_1]
 
+    # 1.2| Scoring
     scores = []
     scores_deque = deque(maxlen=100)
-    buffer = ReplayBuffer(int(5e4))
 
+    # 2| Episode run
     for i_episode in range(1, n_episodes+1):
 
-        # 0| Initialization of episode
+        # 2.0| Initialization of episode
         env_info = env.reset(train_mode=True)[brain_name]
         states = env_info.vector_observations
-        state_full = [state.ravel(-1), state.ravel(-1)]
-        i_score = np.zeros(num_agents)
+        state_full = np.array([states.ravel(-1), states.ravel(-1)])
+        i_score = np.zeros(2)
+
         for agent in agents:
             agent.reset()
 
-        # 1| Episode Run
+        # 2.1| Episode Run
         while True:
             # 1.1| Agent decision and interaction
             actions = [agent.act(state) for agent, state in zip(agents, states)]
@@ -55,24 +68,26 @@ def execute_maddpg(state_size, action_size, random_seed, n_episodes=8000, batch_
 
             # 1.2| Feedback on action
             next_state = env_info.vector_observations
-            next_state_full = [next_state.ravel(-1), next_state.ravel(-1)]
+            next_state_full = np.array([next_state.ravel(-1), next_state.ravel(-1)])
             rewards = env_info.rewards
-            dones = [float(done) for done in env_info.local_done]  # Pytorch bool non-compatible
+            dones = env_info.local_done
 
             # 1.3| Experience saving
             transition = (state, state_full, actions, rewards, next_state, next_state_full, dones) # TODO: ver como devuelven los valores si numpy o torch(no torch,...)
-            buffer.push(transition)
+
 
             # 1.4| Update values
             i_score += rewards
             state, state_full = next_state, next_state_full
 
             # 1.5| Update agents
+            """
             if len(buffer) > batch_size and i_episode % n_update_learn == 0:
                 for i_agent in range(2):
                     samples = buffer.sample(batch_size)
                     maddpg.update(samples, i_agent)
                 maddpg.update_targets()  # soft update the target network towards the actual networks
+            """
 
             # 1.6| Episode ending
             if np.any(dones):
@@ -86,12 +101,14 @@ def execute_maddpg(state_size, action_size, random_seed, n_episodes=8000, batch_
         print('Episode {}\tAverage Score: {:.2f}\tScore: {:.2f}'.format(i_episode,
                                                                         np.mean(scores_deque), np.max(i_score)))
         # 2.2| Saving models
-        if i_episode % 100 == 0:
-            save_models(model_dir, maddpg, i_episode)
+        if i_episode % 500 == 0:
+            for agent in agents:
+                agent.save(save_path= model_dir, iteration=i_episode)
 
         # 3| Completion condition
         if np.mean(scores_deque) > 0.5:
-            save_models(model_dir, maddpg, i_episode)
+            for agent in agents:
+                agent.save(save_path= model_dir, iteration=i_episode)
             print('\rEpisode employed for completing the challenge {}'.format(i_episode))
 
             break

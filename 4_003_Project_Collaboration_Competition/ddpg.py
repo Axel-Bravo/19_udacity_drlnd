@@ -16,8 +16,8 @@ class DDGP(object):
     """Interacts with and learns from the environment."""
 
     def __init__(self, name, state_size, action_size, random_seed,
-                 buffer_size=int(1e4), batch_size=512, min_req_exp=200, consec_learn_iter=2, learn_every=4,
-                 lr_actor=1e-4, lr_critic=1e-3, weight_decay=1e-4, tau=1e-3, gamma=0.99):
+                 buffer_size, batch_size, consec_learn_iter, learn_every,
+                 lr_actor, lr_critic, weight_decay=1e-4, tau=1e-3, gamma=0.99):
 
         """Initialize an Agent object.
 
@@ -29,7 +29,6 @@ class DDGP(object):
 
             buffer_size (int):  size of the "ReplauBuffer" pool
             batch_size (int): size of the batch used at each training epoch
-            min_req_exp (int): minimum required episodes before starting to train
             consec_learn_iter (int): number of consecutive learning steps
             learn_every (int): number of episodes between learning steps
 
@@ -49,7 +48,6 @@ class DDGP(object):
         # Agent learning parameters
         self.buffer_size = buffer_size
         self.batch_size = batch_size
-        self.min_req_exp = min_req_exp
         self.consec_learn_iter = consec_learn_iter
         self.learn_every = learn_every
 
