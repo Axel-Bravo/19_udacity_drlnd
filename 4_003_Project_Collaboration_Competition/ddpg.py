@@ -91,7 +91,7 @@ class DDGP(object):
 
     def trigger_learn(self):
         self.train = False
-        self.exploration *= 0.95
+        self.exploration *= 0.975
 
         if len(self.memory) > self.batch_size:
             self.learn()
@@ -117,6 +117,8 @@ class DDGP(object):
 
     def reset(self):
         self.noise.reset()
+        self.step_mem = 0
+        self.train = False
 
     def learn(self):
         """Update policy and value parameters using given batch of experience tuples.
@@ -136,6 +138,7 @@ class DDGP(object):
         experience = self.memory.sample()
         states, actions, rewards, next_states, dones = experience
 
+        # TODO: arreglar
         state = states[(agent*BATCH_SIZE):((agent+1)*BATCH_SIZE)]
         action = actions[(agent*BATCH_SIZE):((agent+1)*BATCH_SIZE)]
         reward = rewards[:, agent]
@@ -184,7 +187,7 @@ class DDGP(object):
         for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
             target_param.data.copy_(tau * local_param.data + (1.0 - tau) * target_param.data)
 
-    def save(self, save_path):
+    def save(self, save_path, iteration):
         save_dict = {'actor_local_params': self.actor_local.state_dict(),
                      'actor_target_params': self.actor_target.state_dict(),
                      'actor_optim_params': self.actor_optimizer.state_dict(),
@@ -192,7 +195,7 @@ class DDGP(object):
                      'critic_target_params': self.critic_target.state_dict(),
                      'critic_optim_params': self.critic_optimizer.state_dict()}
 
-        torch.save(save_dict, os.path.join(save_path, self.name + 'i_episode-{}.pt'.format(self.step_mem)))
+        torch.save(save_dict, os.path.join(save_path, self.name + 'i_episode-{}.pt'.format(iteration)))
 
 
 class OUNoise:
