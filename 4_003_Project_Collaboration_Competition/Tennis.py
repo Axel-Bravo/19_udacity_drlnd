@@ -14,8 +14,8 @@ model_dir = 'models/'
 
 
 def execute_maddpg(state_size, action_size, random_seed, n_episodes=8000, min_req_exp=200,
-                   buffer_size=int(1e4),batch_size=1024, consec_learn_iter=5, learn_every=20,
-                   lr_actor=1e-4, lr_critic=1e-3):
+                   buffer_size=int(1e4), batch_size=1024, consec_learn_iter=5, learn_every=20,
+                   lr_actor=1e-4, lr_critic=7.5e-4):
     """
     MADDPG - Executiong Algorithm Implementation:
       - Each agent will be independent from the others
