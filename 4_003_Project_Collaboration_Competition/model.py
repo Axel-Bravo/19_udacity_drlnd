@@ -1,12 +1,19 @@
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 
+def hidden_init(layer):
+    fan_in = layer.weight.data.size()[0]
+    lim = 1. / np.sqrt(fan_in)
+    return -lim, lim
+
+
 class Actor(nn.Module):
     """Actor (Policy) Model."""
 
-    def __init__(self, state_size, action_size, seed, fc_units_1=64, fc_units_2=63):
+    def __init__(self, state_size, action_size, seed, fc_units_1=512, fc_units_2=256):
         """Initialize parameters and build model.
         Params
         ======
@@ -19,27 +26,30 @@ class Actor(nn.Module):
         super(Actor, self).__init__()
         self.seed = torch.manual_seed(seed)
 
-        self.batch1 = nn.LayerNorm(fc_units_1)
-        self.batch2 = nn.LayerNorm(fc_units_2)
-        self.batch3 = nn.LayerNorm(action_size)
-
         self.fc1 = nn.Linear(state_size, fc_units_1)
         self.fc2 = nn.Linear(fc_units_1, fc_units_2)
         self.fc3 = nn.Linear(fc_units_2, action_size)
 
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        self.fc1.weight.data.uniform_(*hidden_init(self.fc1))
+        self.fc2.weight.data.uniform_(*hidden_init(self.fc2))
+        self.fc3.weight.data.uniform_(-3e-3, 3e-3)
+
     def forward(self, state):
         """Build an actor (policy) network that maps states -> actions."""
-        x = self.batch1(F.relu(self.fc1(state)))
-        x = self.batch2(F.relu(self.fc2(x)))
-        x = self.batch3(F.relu(self.fc3(x)))
+        x = F.relu(self.fc1(state))
+        x = F.relu(self.fc2(x))
+        x = F.tanh(self.fc3(x))
 
-        return F.tanh(x)
+        return x
 
 
 class Critic(nn.Module):
     """Critic (Value) Model."""
 
-    def __init__(self, state_size, action_size, seed, fcs1_units=128, fc_units_2=128):
+    def __init__(self, state_size, action_size, seed, fcs1_units=512, fc_units_2=256):
         """Initialize parameters and build model.
         Params
         ======
@@ -51,18 +61,25 @@ class Critic(nn.Module):
         """
         super(Critic, self).__init__()
         self.seed = torch.manual_seed(seed)
+        self.dropout = nn.Dropout(p=0.2)
 
-        self.batch1 = nn.LayerNorm(state_size)
         self.fcs1 = nn.Linear(state_size, fcs1_units)
         self.fc2 = nn.Linear(fcs1_units+action_size, fc_units_2)
         self.fc3 = nn.Linear(fc_units_2, 1)
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        self.fcs1.weight.data.uniform_(*hidden_init(self.fcs1))
+        self.fc2.weight.data.uniform_(*hidden_init(self.fc2))
+        self.fc3.weight.data.uniform_(-3e-3, 3e-3)
 
     def forward(self, state, action):
         """Build a critic (value) network that maps (state, action) pairs -> Q-values."""
-        x = self.batch1(state)
-        xs = F.relu(self.fcs1(x))
+        xs = F.relu(self.fcs1(state))
         x = torch.cat((xs, action), dim=1)
         x = F.relu(self.fc2(x))
+        x = self.dropout(x)
+        x = self.fc3(x)
 
-        return self.fc3(x)
+        return x
 

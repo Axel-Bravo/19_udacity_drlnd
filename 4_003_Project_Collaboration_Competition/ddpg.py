@@ -9,15 +9,14 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
+# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")
 
 class DDGP(object):
     """Interacts with and learns from the environment."""
 
-    def __init__(self, name, state_size, action_size, random_seed,
-                 buffer_size, batch_size, consec_learn_iter, learn_every,
-                 lr_actor, lr_critic, weight_decay=1e-4, tau=1e-3, gamma=0.99):
+    def __init__(self, state_size, action_size, random_seed, buffer_size, batch_size,
+                 lr_actor, lr_critic, weight_decay=0.0000, tau=2e-1, gamma=0.99):
 
         """Initialize an Agent object.
 
@@ -29,8 +28,6 @@ class DDGP(object):
 
             buffer_size (int):  size of the "ReplauBuffer" pool
             batch_size (int): size of the batch used at each training epoch
-            consec_learn_iter (int): number of consecutive learning steps
-            learn_every (int): number of episodes between learning steps
 
             lr_actor (float): actor's learning rate
             lr_critic (float): critic's learning rate
@@ -40,7 +37,6 @@ class DDGP(object):
         """
 
         # Agent parameters
-        self.name = name
         self.state_size = state_size
         self.action_size = action_size
         self.seed = random.seed(random_seed)
@@ -48,11 +44,8 @@ class DDGP(object):
         # Agent learning parameters
         self.buffer_size = buffer_size
         self.batch_size = batch_size
-        self.consec_learn_iter = consec_learn_iter
-        self.learn_every = learn_every
 
         # Agent hyper-parameters
-
         self.lr_actor = lr_actor
         self.lr_critic = lr_critic
         self.weight_decay = weight_decay
@@ -76,29 +69,9 @@ class DDGP(object):
         # Replay memory
         self.memory = ReplayBuffer(self.buffer_size, self.batch_size, random_seed)
 
-        # Step memory
-        self.step_mem = 0
-        self.train = False
-
-        # Exploration coefficient
-        self.exploration = 1.0
-
-    def memorize(self, state, full_state, action, reward, next_state, next_full_state, done):
-        """Inscribes in thmemory the experiences"""
-        self.memory.add(state, full_state, action, reward, next_state, next_full_state, done)
-
-    def trigger_learn(self):
-        self.train = False
-        self.exploration *= 0.975
-
-        if len(self.memory) > self.batch_size:
-            self.learn()
-
-    def update_counter(self):
-        self.step_mem += 1
-
-        if self.step_mem % self.learn_every == 0:
-            self.train = True
+    def memorize(self, state, action, reward, next_state, done):
+        """Inscribes in the memory the experiences"""
+        self.memory.add(state, action, reward, next_state, done)
 
     def act(self, state, add_noise=True):
         """Returns actions for given state as per current policy."""
@@ -110,15 +83,22 @@ class DDGP(object):
         self.actor_local.train()
 
         if add_noise:
-            action += (self.noise.sample() * self.exploration)
+            action += self.noise.sample()
         return np.clip(action, -1, 1)
 
     def reset(self):
         self.noise.reset()
-        self.step_mem = 0
-        self.train = False
 
-    def learn(self):
+    def trigger_learn(self):
+        """
+        Triggers learning and if enough samples are in the memory pool, launches the learning procedure
+        :return: None
+        """
+        if len(self.memory) > self.batch_size:
+            experiences = self.memory.sample()
+            self.learn(experiences=experiences)
+
+    def learn(self, experiences):
         """Update policy and value parameters using given batch of experience tuples.
         Q_targets = r + γ * critic_target(next_state, actor_target(next_state))
         where:
@@ -128,10 +108,8 @@ class DDGP(object):
         Params
         ======
             experiences (Tuple[torch.Tensor]): tuple of (s, a, r, s', done) tuples
-            gamma (float): discount factor
         """
-        experience = self.memory.sample()
-        state, full_state, action, reward, next_state, next_full_state, done = experience
+        state, action, reward, next_state, done = experiences
 
         # ---------------------------- update critic ---------------------------- #
         # Get predicted next-state actions and Q values from target models
@@ -155,7 +133,6 @@ class DDGP(object):
         # Minimize the loss
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
-        torch.nn.utils.clip_grad_norm(self.actor_local.parameters(), 1)  # Gradient clipping
         self.actor_optimizer.step()
 
         # ----------------------- update target networks ----------------------- #
@@ -183,7 +160,7 @@ class DDGP(object):
                      'critic_target_params': self.critic_target.state_dict(),
                      'critic_optim_params': self.critic_optimizer.state_dict()}
 
-        torch.save(save_dict, os.path.join(save_path, self.name + 'i_episode-{}.pt'.format(iteration)))
+        torch.save(save_dict, os.path.join(save_path, 'i_episode-{}.pt'.format(iteration)))
 
 
 class ReplayBuffer:
@@ -198,13 +175,12 @@ class ReplayBuffer:
         """
         self.memory = deque(maxlen=buffer_size)  # internal memory (deque)
         self.batch_size = batch_size
-        self.experience = namedtuple("Experience", field_names=["state", "full_state", "action", "reward",
-                                                                "next_state", "next_full_state", "done"])
+        self.experience = namedtuple("Experience", field_names=["state", "action", "reward", "next_state", "done"])
         self.seed = random.seed(seed)
 
-    def add(self, state, full_state, action, reward, next_state, next_full_state, done):
+    def add(self, state, action, reward, next_state, done):
         """Add a new experience to memory."""
-        e = self.experience(state, full_state, action, reward, next_state, next_full_state, done)
+        e = self.experience(state, action, reward, next_state, done)
         self.memory.append(e)
 
     def sample(self):
@@ -212,17 +188,14 @@ class ReplayBuffer:
         experiences = random.sample(self.memory, k=self.batch_size)
 
         states = torch.from_numpy(np.vstack([e.state for e in experiences if e is not None])).float().to(device)
-        full_states = torch.from_numpy(np.vstack([e.full_state for e in experiences if e is not None])).float().to(device)
         actions = torch.from_numpy(np.vstack([e.action for e in experiences if e is not None])).float().to(device)
         rewards = torch.from_numpy(np.vstack([e.reward for e in experiences if e is not None])).float().to(device)
-        next_states = torch.from_numpy(np.vstack([e.next_state for e in experiences if e is not None])).float().to(
-            device)
-        next_full_states = torch.from_numpy(np.vstack([e.next_full_state for e in experiences if e is not None])).\
+        next_states = torch.from_numpy(np.vstack([e.next_state for e in experiences if e is not None])).\
             float().to(device)
-        dones = torch.from_numpy(np.vstack([e.done for e in experiences if e is not None]).astype(np.uint8)).float().to(
-            device)
+        dones = torch.from_numpy(np.vstack([e.done for e in experiences if e is not None]).astype(np.uint8)).\
+            float().to(device)
 
-        return states, full_states, actions, rewards, next_states, next_full_states, dones
+        return states, actions, rewards, next_states, dones
 
     def __len__(self):
         """Return the current size of internal memory."""
