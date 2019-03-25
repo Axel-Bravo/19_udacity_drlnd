@@ -1,68 +1,104 @@
+# Standard imports
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 
-class Actor(nn.Module):
-    """Actor (Policy) Model."""
+def intialize_nn_layers(layer: nn.Linear) -> tuple:
+    """
+    Initalize neural network parameters
+    :param layer: neural network fully connected layer
+    :return: initialization limits
+    """
+    layer_dimension = layer.weight.data.size()[0]
+    limit = 1. / np.sqrt(layer_dimension)
+    return -limit, limit
 
-    def __init__(self, state_size, action_size, seed, fc_units_1=64, fc_units_2=63):
-        """Initialize parameters and build model.
-        Params
-        ======
-            state_size (int): Dimension of each state
-            action_size (int): Dimension of each action
-            seed (int): Random seed
-            fc1_units (int): Number of nodes in first hidden layer
-            fc2_units (int): Number of nodes in second hidden layer
+
+class Actor(nn.Module):
+
+    def __init__(self, state_size: int, action_size: int, seed: int, units_fc1: int = 512, units_fc2: int = 256):
+        """
+        Initialize actor's network parameters and build model.
+        :param state_size: number of state's dimensions
+        :param action_size: number of action's dimensions
+        :param seed: random seed value
+        :param units_fc1: number of neurons units in first layer
+        :param units_fc2: number of neurons units in second layer
         """
         super(Actor, self).__init__()
         self.seed = torch.manual_seed(seed)
 
-        self.batch1 = nn.LayerNorm(fc_units_1)
-        self.batch2 = nn.LayerNorm(fc_units_2)
-        self.batch3 = nn.LayerNorm(action_size)
+        # Network architecture
+        self.fc1_layer = nn.Linear(state_size, units_fc1)
+        self.fc2_layer = nn.Linear(units_fc1, units_fc2)
+        self.fc3_layer = nn.Linear(units_fc2, action_size)
+        self.reset_parameters()
 
-        self.fc1 = nn.Linear(state_size, fc_units_1)
-        self.fc2 = nn.Linear(fc_units_1, fc_units_2)
-        self.fc3 = nn.Linear(fc_units_2, action_size)
+    def reset_parameters(self) -> None:
+        """
+        Reset networks parameters
+        :return: None
+        """
+        self.fc1_layer.weight.data.uniform_(*intialize_nn_layers(self.fc1_layer))
+        self.fc2_layer.weight.data.uniform_(*intialize_nn_layers(self.fc2_layer))
+        self.fc3_layer.weight.data.uniform_(-2.75e-3, 2.75e-3)
 
-    def forward(self, state):
-        """Build an actor (policy) network that maps states -> actions."""
-        x = self.batch1(F.relu(self.fc1(state)))
-        x = self.batch2(F.relu(self.fc2(x)))
-        x = self.batch3(F.relu(self.fc3(x)))
+    def forward(self, state: list) -> list:
+        """
+        Actor policy network mapping states to actions
+        :param state: state current description
+        :return: actions to be performed by agents controlling each tennis shovel
+        """
+        x = F.relu(self.fc1_layer(state))
+        x = F.relu(self.fc2_layer(x))
+        x = F.tanh(self.fc3_layer(x))
 
-        return F.tanh(x)
+        return x
 
 
 class Critic(nn.Module):
-    """Critic (Value) Model."""
 
-    def __init__(self, state_size, action_size, seed, fcs1_units=128, fc_units_2=128):
-        """Initialize parameters and build model.
-        Params
-        ======
-            state_size (int): Dimension of each state
-            action_size (int): Dimension of each action
-            seed (int): Random seed
-            fcs1_units (int): Number of nodes in the first hidden layer
-            fc2_units (int): Number of nodes in the second hidden layer
+    def __init__(self, state_size, action_size, seed, units_fcs1=512, units_fc2=256):
+        """
+        Initialize critic's network parameters and build model.
+        :param state_size: number of state's dimensions
+        :param action_size: number of action's dimensions
+        :param seed: random seed value
+        :param units_fcs1: number of neurons units in first layer
+        :param units_fc2: number of neurons units in second layer
         """
         super(Critic, self).__init__()
         self.seed = torch.manual_seed(seed)
+        self.dropout = nn.Dropout(p=0.2)
 
-        self.batch1 = nn.LayerNorm(state_size)
-        self.fcs1 = nn.Linear(state_size, fcs1_units)
-        self.fc2 = nn.Linear(fcs1_units+action_size, fc_units_2)
-        self.fc3 = nn.Linear(fc_units_2, 1)
+        # Network architecture
+        self.fcs1_layer = nn.Linear(state_size, units_fcs1)
+        self.fc2_layer = nn.Linear(units_fcs1 + action_size, units_fc2)
+        self.fc3_layer = nn.Linear(units_fc2, 1)
+        self.reset_parameters()
 
-    def forward(self, state, action):
-        """Build a critic (value) network that maps (state, action) pairs -> Q-values."""
-        x = self.batch1(state)
-        xs = F.relu(self.fcs1(x))
+    def reset_parameters(self) -> None:
+        """
+         Reset networks parameters
+         :return: None
+         """
+        self.fcs1_layer.weight.data.uniform_(*intialize_nn_layers(self.fcs1_layer))
+        self.fc2_layer.weight.data.uniform_(*intialize_nn_layers(self.fc2_layer))
+        self.fc3_layer.weight.data.uniform_(-2.75e-3, 2.75e-3)
+
+    def forward(self, state, action) -> float:
+        """
+        Critic policy network mapping (state, action) to Q-values
+        :param state: state current description
+        :param action: action current description
+        :return: actions to be performed by agents controlling each tennis shovel
+        """
+        xs = F.relu(self.fcs1_layer(state))
         x = torch.cat((xs, action), dim=1)
-        x = F.relu(self.fc2(x))
+        x = F.relu(self.fc2_layer(x))
+        x = self.dropout(x)
+        x = self.fc3_layer(x)
 
-        return self.fc3(x)
-
+        return x

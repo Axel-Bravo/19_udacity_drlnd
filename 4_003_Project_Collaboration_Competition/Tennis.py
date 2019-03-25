@@ -1,121 +1,108 @@
 #%% Imports & Function declaration
 # Standard imports
-from collections import deque
 import numpy as np
-import matplotlib.pyplot as plt
 import torch
+from collections import deque
+import matplotlib.pyplot as plt
 from unityagents import UnityEnvironment
 
 # Developed imports
-from ddpg import DDGP
+from ddpg import Agent
 
 # Parameters
 model_dir = 'models/'
+random_seed = 7
 
 
-def execute_maddpg(state_size, action_size, random_seed, n_episodes=8000, min_req_exp=200,
-                   buffer_size=int(1e4), batch_size=1024, consec_learn_iter=5, learn_every=20,
-                   lr_actor=1e-4, lr_critic=7.5e-4):
+def execute_ddpg(ddpg_agent: Agent, num_episodes: int = 3000, max_episode_t: int = 2000, learn_each: int = 5,
+                 consec_learn_iter: int = 10) -> list:
     """
-    MADDPG - Executiong Algorithm Implementation:
-      - Each agent will be independent from the others
-      - The Critic is trained with full "state" information
-      - No shared "ReplayBuffer" for each agent
-    :param state_size: number of dimensions the state observed by the agent
-    :param action_size: number of dimensions for the action executed by the agent
-    :param random_seed: random seed number, for reproducibility
-    :param n_episodes: number of episodes the algorithm will train
-    :param min_req_exp: minimum number of episodes the algorithm needs to experiment before starting to learn
-    :param buffer_size: sie of the experience replay buffer
-    :param batch_size: number of samples to be trained the networks on at each step
+    DDPG - Execution Algorithm Implementation
+    :param ddpg_agent: agent in charge of controling both Actor and Critic neural networks behaviour
+    :param num_episodes: number of episodes the algorithm will train
+    :param max_episode_t: maximum number of time steps to play at each episode
+    :param learn_each: teps in a game before triggering the learning procedure
     :param consec_learn_iter: number of consecutive learning iterations
-    :param learn_every: steps in a game before triggering the learning procedure
-    :param lr_actor: actor's learning rate
-    :param lr_critic: critic's learning rate
     :return: results obtained during the training procedure
     """
     # 1| Initialization
-    # 1.1 Agents
-    agent_0 = DDGP(name='agent_0', state_size=state_size, action_size=action_size, random_seed=random_seed,
-                   buffer_size=buffer_size, batch_size=batch_size, consec_learn_iter=consec_learn_iter,
-                   learn_every=learn_every, lr_actor=lr_actor, lr_critic=lr_critic)
-    agent_1 = DDGP(name='agent_1', state_size=state_size, action_size=action_size, random_seed=random_seed + 1,
-                   buffer_size=buffer_size, batch_size=batch_size, consec_learn_iter=consec_learn_iter,
-                   learn_every=learn_every, lr_actor=lr_actor, lr_critic=lr_critic)
-    agents = [agent_0, agent_1]
-
-    # 1.2| Scoring
-    scores = []
-    scores_deque = deque(maxlen=100)
+    global_score = []
+    global_score_deque = deque(maxlen=100)
 
     # 2| Episode run
-    for i_episode in range(1, n_episodes+1):
+    for i_episode in range(1, num_episodes + 1):
 
         # 2.0| Initialization of episode
         env_info = env.reset(train_mode=True)[brain_name]
         states = env_info.vector_observations
-        full_states = [states.ravel(-1), states.ravel(-1)]
-        i_score = np.zeros(2)
-
-        for agent in agents:
-            agent.reset()
+        scores = np.zeros(num_agents)
+        ddpg_agent.reset()
 
         # 2.1| Episode Run
-        while True:
+        for t_step in range(max_episode_t):
             # 2.1.1| Agent decision and interaction
-            actions = [agent.act(state) for agent, state in zip(agents, states)]
+            actions = ddpg_agent.act(states)
             env_info = env.step(actions)[brain_name]
 
             # 2.1.2| Feedback on action
             next_states = env_info.vector_observations
-            next_full_states = [next_states.ravel(-1), next_states.ravel(-1)]
             rewards = env_info.rewards
             dones = env_info.local_done
 
             # 2.1.3| Experience saving
-            for state, full_state, action, reward, next_state, next_full_state, done, agent in zip(
-                    states, full_states, actions, rewards, next_states, next_full_states, dones, agents):
-                agent.memorize(state, full_state, action, reward, next_state, next_full_state, done)
-                agent.update_counter()
+            for state, action, reward, next_state, done in zip(states, actions, rewards, next_states, dones):
+                ddpg_agent.memorize(state, action, reward, next_state, done)
 
             # 2.1.4| Update values
-            for agent in agents:
-                if agent.train:
-                    for learn_iter in range(agent.consec_learn_iter):
-                        agent.trigger_learn()
+            scores += rewards
+            states = next_states
 
-            states, full_states = next_states, next_full_states
-            i_score += rewards
+            # 2.1.5| Agent learning
+            if t_step % learn_each == 0:
+                for _ in range(consec_learn_iter):
+                    ddpg_agent.trigger_learning()
 
-            # 2.1.5| Episode ending
+            # 2.1.6| Episode ending
             if np.any(dones):
                 break
 
         # 2.2| Episode post-processing
         # 2.2.1| Scoring
-        scores.append(np.max(i_score))
-        scores_deque.append(np.max(i_score))
+        global_score_deque.append(np.max(scores))
+        global_score.append(np.max(scores))
 
-        print('Episode {}\tAverage Score: {:.2f}\tScore: {:.2f}'.format(i_episode,
-                                                                        np.mean(scores_deque), np.max(i_score)))
-        # 2.2.2| Saving models
-        if i_episode % 500 == 0:
-            for agent in agents:
-                agent.save(save_path=model_dir, iteration=i_episode)
+        if i_episode % 10 == 0:
+            print('Episode {}\tTotal Average Score: {:.2f}\tMean: {:.2f}'.format(
+                    i_episode, np.mean(global_score_deque), np.mean(scores)))
 
-        # 2.2.3| Completion condition
-        if np.mean(scores_deque) > 0.5:
-            for agent in agents:
-                agent.save(save_path=model_dir, iteration=i_episode)
+        if i_episode % 50 == 0:
+            torch.save(ddpg_agent.actor_local.state_dict(),
+                       model_dir + 'checkpoint__actor_local__episode_' + str(i_episode) + '.pth')
+            torch.save(ddpg_agent.actor_target.state_dict(),
+                       model_dir + 'checkpoint__actor_target__episode_' + str(i_episode) + '.pth')
+            torch.save(ddpg_agent.critic_local.state_dict(),
+                       model_dir + 'checkpoint__critic_local__episode_' + str(i_episode) + '.pth')
+            torch.save(ddpg_agent.critic_target.state_dict(),
+                       model_dir + 'checkpoint__critic_target__episode_' + str(i_episode) + '.pth')
+
+        if np.mean(global_score_deque) >= 0.5 and i_episode >= 100:
             print('\rEpisode employed for completing the challenge {}'.format(i_episode))
 
+            torch.save(ddpg_agent.actor_local.state_dict(),
+                       model_dir + 'checkpoint__actor_local__episode_' + str(i_episode) + '.pth')
+            torch.save(ddpg_agent.actor_target.state_dict(),
+                       model_dir + 'checkpoint__actor_target__episode_' + str(i_episode) + '.pth')
+            torch.save(ddpg_agent.critic_local.state_dict(),
+                       model_dir + 'checkpoint__critic_local__episode_' + str(i_episode) + '.pth')
+            torch.save(ddpg_agent.critic_target.state_dict(),
+                       model_dir + 'checkpoint__critic_target__episode_' + str(i_episode) + '.pth')
             break
 
-    return scores, scores_deque
+    return global_score
 
 
 #%% Load Tennis environment
-env = UnityEnvironment(file_name="Tennis_Linux_NoVis/Tennis.x86")
+env = UnityEnvironment(file_name="Tennis_Linux_NoVis/Tennis.x86_64")
 
 # Get brain information
 brain_name = env.brain_names[0]
@@ -128,8 +115,9 @@ state_size = env_info.vector_observations.shape[1]
 num_agents = len(env_info.agents)
 
 
-#%% MADDPG - Agent Training
-score, score_episodes_deque = execute_maddpg(state_size=state_size, action_size=action_size, random_seed=10)
+#%% DDPG - Agent Training
+agent = Agent(state_size=state_size, action_size=action_size, random_seed=random_seed)
+score = execute_ddpg(ddpg_agent=agent)
 
 # Plot results
 fig = plt.figure()
