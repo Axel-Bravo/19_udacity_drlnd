@@ -14,7 +14,7 @@ model_dir = 'models/'
 random_seed = 7
 
 
-def execute_ddpg(ddpg_agent: Agent, num_episodes: int = 3000, max_episode_t: int = 2000, learn_each : int = 5,
+def execute_ddpg(ddpg_agent: Agent, num_episodes: int = 3000, max_episode_t: int = 2000, learn_each: int = 5,
                  consec_learn_iter: int = 10) -> list:
     """
     DDPG - Execution Algorithm Implementation
@@ -117,7 +117,7 @@ num_agents = len(env_info.agents)
 
 #%% DDPG - Agent Training
 agent = Agent(state_size=state_size, action_size=action_size, random_seed=random_seed)
-score = execute_ddpg()
+score = execute_ddpg(ddpg_agent=agent)
 
 # Plot results
 fig = plt.figure()
